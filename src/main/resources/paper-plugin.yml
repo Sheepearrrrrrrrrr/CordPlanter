@@ -1,0 +1,6 @@
+name: CordPlanter
+version: '1.0-SNAPSHOT'
+main: eu.sheepearrr.cordplanter.CordPlanter
+api-version: '1.21.6'
+authors: [ Sheepearrr ]
+bootstrapper: eu.sheepearrr.cordplanter.CordPlanterBootstrap

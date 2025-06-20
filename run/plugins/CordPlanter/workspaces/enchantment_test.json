@@ -1,0 +1,70 @@
+{
+  "format": "1.0.0-0.SNAPSHOT",
+  "display_name": "Enchantment Test",
+  "display_version": "1.0.0",
+  "compile_version": 0,
+  "workspace": [
+    {
+      "type": "base",
+      "base": "enchantment",
+      "id": "test",
+      "values": {
+        "description": "Test Enchant",
+        "max_level": 1,
+        "min_cost": 1,
+        "max_cost": 3,
+        "supported": "minecraft:wooden_sword",
+        "weight": 5,
+        "anvil_cost": 4,
+        "slots": [
+          "body",
+          "mainhand"
+        ],
+        "exclusive": [
+          "sharpness",
+          "fire_aspect"
+        ]
+      }
+    },
+    {
+      "type": "base",
+      "base": "enchantment",
+      "id": "test2",
+      "values": {
+        "description": [
+          "",
+          {
+            "text": "2.",
+            "color": "gold",
+            "bold": true
+          },
+          {
+            "text": " Test enchant",
+            "hover_event": {
+              "type": "show_text",
+              "text": "o/"
+            }
+          }
+        ],
+        "max_level": 3,
+        "min_cost": {
+          "base": 3,
+          "additional": 3
+        },
+        "max_cost": {
+          "base": 25,
+          "additional": 3
+        },
+        "supported": [
+          "wooden_sword",
+          "wooden_axe"
+        ],
+        "weight": 5,
+        "anvil_cost": 10,
+        "slots": "mainhand",
+        "exclusive": "enchantment_test:test"
+      }
+    }
+  ],
+  "id": "enchantment_test"
+}

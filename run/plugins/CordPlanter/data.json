@@ -1,0 +1,13 @@
+{
+  "disabled": [],
+  "settings": {
+    "require_current_format": true,
+    "allow_custom_commands": true,
+    "allow_custom_enchantments": true,
+    "allow_giving_operator_status": false,
+    "allow_scoreboard_manipulation": false,
+    "allow_tag_manipulation": true,
+    "allow_text_replacement": true
+  },
+  "disable_format_warning": false
+}

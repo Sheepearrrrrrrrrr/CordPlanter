@@ -1,0 +1,9 @@
+{
+  "format": "1.0.0-0.SNAPSHOT",
+  "display_name": "Test2",
+  "display_version": "1.0.0",
+  "compile_version": 0,
+  "workspace": [
+  ],
+  "id": "test2"
+}

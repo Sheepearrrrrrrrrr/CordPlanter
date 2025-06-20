@@ -1,0 +1,46 @@
+{
+  "format": "1.0.0-0.SNAPSHOT",
+  "display_name": "Command Test",
+  "display_version": "1.0.0",
+  "compile_version": 0,
+  "workspace": [
+    {
+      "type": "base",
+      "base": "command",
+      "name": "hello",
+      "requires": [
+        {
+          "type": "return",
+          "value": {
+            "type": "method",
+            "from": "sender",
+            "method": "is_op",
+            "args": [
+            ]
+          }
+        }
+      ],
+      "executes": [
+        {
+          "type": "method",
+          "from": "sender",
+          "method": "send_message",
+          "args": [
+            [
+              {
+                "text": "Hello ",
+                "color": "gold"
+              },
+              {
+                "text": "$#sender&name#$",
+                "color": "red"
+              },
+              "!"
+            ]
+          ]
+        }
+      ]
+    }
+  ],
+  "id": "command_test"
+}

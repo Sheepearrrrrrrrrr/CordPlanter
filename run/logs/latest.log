@@ -1,0 +1,18 @@
+[21:23:14] [ServerMain/INFO]: [bootstrap] Running Java 21 (OpenJDK 64-Bit Server VM 21.0.6+7-LTS; Eclipse Adoptium Temurin-21.0.6+7) on Linux 6.15.2-arch1-1 (amd64)
+[21:23:14] [ServerMain/INFO]: [bootstrap] Loading Paper 1.21.6-13-main@74fbcce (2025-06-20T14:50:31Z) for Minecraft 1.21.6
+[21:23:14] [ServerMain/INFO]: [PluginInitializerManager] Initializing plugins...
+[21:23:15] [ServerMain/INFO]: [PluginInitializerManager] Initialized 1 plugin
+[21:23:15] [ServerMain/INFO]: [PluginInitializerManager] Paper plugins (1):
+ - CordPlanter (1.0-SNAPSHOT)
+[21:23:18] [ServerMain/INFO]: Environment: Environment[sessionHost=https://sessionserver.mojang.com, servicesHost=https://api.minecraftservices.com, name=PROD]
+[21:23:18] [ServerMain/ERROR]: Failed to start the minecraft server
+net.minecraft.util.DirectoryLock$LockException: /home/sheep/IdeaProjects/CordPlanter/run/./world/session.lock: already locked (possibly by other Minecraft instance?)
+	at net.minecraft.util.DirectoryLock$LockException.alreadyLocked(DirectoryLock.java:100) ~[paper-1.21.6.jar:1.21.6-13-74fbcce]
+	at net.minecraft.util.DirectoryLock.create(DirectoryLock.java:30) ~[paper-1.21.6.jar:1.21.6-13-74fbcce]
+	at net.minecraft.world.level.storage.LevelStorageSource$LevelStorageAccess.<init>(LevelStorageSource.java:436) ~[paper-1.21.6.jar:1.21.6-13-74fbcce]
+	at net.minecraft.world.level.storage.LevelStorageSource.validateAndCreateAccess(LevelStorageSource.java:351) ~[paper-1.21.6.jar:1.21.6-13-74fbcce]
+	at net.minecraft.server.Main.main(Main.java:185) ~[paper-1.21.6.jar:1.21.6-13-74fbcce]
+	at io.papermc.paper.PaperBootstrap.boot(PaperBootstrap.java:21) ~[paper-1.21.6.jar:1.21.6-13-74fbcce]
+	at org.bukkit.craftbukkit.Main.main(Main.java:242) ~[paper-1.21.6.jar:1.21.6-13-74fbcce]
+	at io.papermc.paperclip.Paperclip.lambda$main$0(Paperclip.java:42) ~[app:?]
+	at java.base/java.lang.Thread.run(Thread.java:1583) ~[?:?]
