@@ -40,7 +40,7 @@ public class CommandSender extends Audience {
 
     public boolean setOp(JsonArray args) {
         boolean opStatus = this.sender.isOp();
-        if (CordPlanterBootstrap.INSTANCE.settings.get("allow_giving_operator_status")) {
+        if (CordPlanterBootstrap.INSTANCE.settings.get("allow_granting_operator_status")) {
             this.sender.setOp(args.get(0).getAsBoolean());
         }
         return opStatus;

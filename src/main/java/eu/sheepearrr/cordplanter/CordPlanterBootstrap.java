@@ -5,11 +5,12 @@ import com.google.gson.JsonArray;
 import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 import com.mojang.brigadier.Command;
-import com.mojang.brigadier.arguments.ArgumentType;
-import com.mojang.brigadier.arguments.BoolArgumentType;
-import com.mojang.brigadier.arguments.StringArgumentType;
+import com.mojang.brigadier.arguments.*;
+import com.mojang.brigadier.builder.ArgumentBuilder;
 import com.mojang.brigadier.builder.LiteralArgumentBuilder;
+import com.mojang.brigadier.builder.RequiredArgumentBuilder;
 import com.mojang.brigadier.suggestion.SuggestionProvider;
+import com.mojang.brigadier.tree.CommandNode;
 import com.mojang.brigadier.tree.LiteralCommandNode;
 import eu.sheepearrr.cordplanter.util.EnchantmentBuilder;
 import eu.sheepearrr.cordplanter.util.MethodContext;
@@ -55,6 +56,22 @@ public class CordPlanterBootstrap implements PluginBootstrap {
     public Map<String, Map<String, JsonObject>> tags = new HashMap<>();
     public Map<String, Boolean> settings = new HashMap<>();
     public Map<String, Object> internalVariables = new HashMap<>();
+    private static final Map<String, ArgumentType<?>> argumentTypes = Map.ofEntries(
+            Map.entry("string", StringArgumentType.string()),
+            Map.entry("word", StringArgumentType.word()),
+            Map.entry("greedy_string", StringArgumentType.greedyString()),
+            Map.entry("integer", IntegerArgumentType.integer()),
+            Map.entry("float", FloatArgumentType.floatArg()),
+            Map.entry("double", DoubleArgumentType.doubleArg()),
+            Map.entry("uuid", ArgumentTypes.uuid()),
+            Map.entry("world", ArgumentTypes.world()),
+            Map.entry("entity", ArgumentTypes.entity()),
+            Map.entry("entities", ArgumentTypes.entities()),
+            Map.entry("time", ArgumentTypes.time()),
+            Map.entry("player", ArgumentTypes.player()),
+            Map.entry("players", ArgumentTypes.players()),
+            Map.entry("player_profiles", ArgumentTypes.playerProfiles())
+    );
 
     @Override
     public void bootstrap(BootstrapContext bootstrapContext) {
@@ -326,6 +343,11 @@ public class CordPlanterBootstrap implements PluginBootstrap {
                                 return context.executes(stack);
                             });
                         }
+                        if (entry.getValue().has("then")) {
+                            for (JsonElement then : entry.getValue().get("then").getAsJsonArray()) {
+                                node.then(then(then.getAsJsonObject()));
+                            }
+                        }
                         commandContext.registrar().register(node.build());
                     }
                 }
@@ -360,6 +382,37 @@ public class CordPlanterBootstrap implements PluginBootstrap {
                 }
             }));
         }
+    }
+
+    private CommandNode<CommandSourceStack> then(JsonObject obj) {
+        var node = obj.get("type").getAsString().equals("argument") ? Commands.argument(obj.get("name").getAsString(), argumentTypes.get(obj.get("argument_type").getAsString())) : Commands.literal(obj.get("name").getAsString());
+        if (obj.has("requires")) {
+            node.requires(stack -> {
+                Map<String, Object> props = new HashMap<>(Map.ofEntries(
+                        Map.entry("sender", stack.getSender()),
+                        Map.entry("executer", stack.getExecutor()),
+                        Map.entry("location", stack.getLocation())
+                ));
+                MethodContext context = new MethodContext(obj.getAsJsonArray("requires").asList(), props);
+                return context.requires(stack);
+            });
+        }
+        if (obj.has("executes")) {
+            node.executes(stack -> {
+                Map<String, Object> props = new HashMap<>(Map.ofEntries(
+                        Map.entry("sender", stack.getSource().getSender()),
+                        Map.entry("executer", stack.getSource().getExecutor())
+                ));
+                MethodContext context = new MethodContext(obj.getAsJsonArray("executes").asList(), props);
+                return context.executes(stack);
+            });
+        }
+        if (obj.has("then")) {
+            for (JsonElement then : obj.get("then").getAsJsonArray()) {
+                node.then(then(then.getAsJsonObject()));
+            }
+        }
+        return node.build();
     }
 
     @Override

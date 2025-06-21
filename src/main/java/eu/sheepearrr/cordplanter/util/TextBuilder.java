@@ -94,7 +94,7 @@ public class TextBuilder {
                         parseError(jsonObj);
                         return Component.empty();
                     }
-                    text = text.substring(0, index) + mContext.getExpression(fakeAssThingy, null).apply(args != null ? args : new JsonArray()).toString() + (end + 2 < text.length() ? text.substring(end + 2) : "") ;
+                    text = text.substring(0, index) + mContext.getExpression(fakeAssThingy).apply(args != null ? args : new JsonArray()).toString() + (end + 2 < text.length() ? text.substring(end + 2) : "") ;
                 }
             }
             comp = Component.text(text);

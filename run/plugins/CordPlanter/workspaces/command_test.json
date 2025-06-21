@@ -129,6 +129,24 @@
           ]
         }
       ]
+    },
+    {
+      "type": "base",
+      "base": "command",
+      "name": "nestingtest",
+      "then": [
+        {
+          "type": "literal",
+          "name": "nest1",
+          "then": [
+            {
+              "type": "argument",
+              "argument_type": "string",
+              "name": "nest2"
+            }
+          ]
+        }
+      ]
     }
   ],
   "id": "command_test"
