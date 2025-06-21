@@ -1,18 +1,223 @@
-[21:23:14] [ServerMain/INFO]: [bootstrap] Running Java 21 (OpenJDK 64-Bit Server VM 21.0.6+7-LTS; Eclipse Adoptium Temurin-21.0.6+7) on Linux 6.15.2-arch1-1 (amd64)
-[21:23:14] [ServerMain/INFO]: [bootstrap] Loading Paper 1.21.6-13-main@74fbcce (2025-06-20T14:50:31Z) for Minecraft 1.21.6
-[21:23:14] [ServerMain/INFO]: [PluginInitializerManager] Initializing plugins...
-[21:23:15] [ServerMain/INFO]: [PluginInitializerManager] Initialized 1 plugin
-[21:23:15] [ServerMain/INFO]: [PluginInitializerManager] Paper plugins (1):
+[10:54:39] [ServerMain/INFO]: [bootstrap] Running Java 21 (OpenJDK 64-Bit Server VM 21.0.6+7-LTS; Eclipse Adoptium Temurin-21.0.6+7) on Linux 6.15.2-arch1-1 (amd64)
+[10:54:39] [ServerMain/INFO]: [bootstrap] Loading Paper 1.21.6-21-main@29fc853 (2025-06-21T06:10:40Z) for Minecraft 1.21.6
+[10:54:39] [ServerMain/INFO]: [PluginInitializerManager] Initializing plugins...
+[10:54:39] [ServerMain/INFO]: [PluginInitializerManager] Initialized 1 plugin
+[10:54:39] [ServerMain/INFO]: [PluginInitializerManager] Paper plugins (1):
  - CordPlanter (1.0-SNAPSHOT)
-[21:23:18] [ServerMain/INFO]: Environment: Environment[sessionHost=https://sessionserver.mojang.com, servicesHost=https://api.minecraftservices.com, name=PROD]
-[21:23:18] [ServerMain/ERROR]: Failed to start the minecraft server
-net.minecraft.util.DirectoryLock$LockException: /home/sheep/IdeaProjects/CordPlanter/run/./world/session.lock: already locked (possibly by other Minecraft instance?)
-	at net.minecraft.util.DirectoryLock$LockException.alreadyLocked(DirectoryLock.java:100) ~[paper-1.21.6.jar:1.21.6-13-74fbcce]
-	at net.minecraft.util.DirectoryLock.create(DirectoryLock.java:30) ~[paper-1.21.6.jar:1.21.6-13-74fbcce]
-	at net.minecraft.world.level.storage.LevelStorageSource$LevelStorageAccess.<init>(LevelStorageSource.java:436) ~[paper-1.21.6.jar:1.21.6-13-74fbcce]
-	at net.minecraft.world.level.storage.LevelStorageSource.validateAndCreateAccess(LevelStorageSource.java:351) ~[paper-1.21.6.jar:1.21.6-13-74fbcce]
-	at net.minecraft.server.Main.main(Main.java:185) ~[paper-1.21.6.jar:1.21.6-13-74fbcce]
-	at io.papermc.paper.PaperBootstrap.boot(PaperBootstrap.java:21) ~[paper-1.21.6.jar:1.21.6-13-74fbcce]
-	at org.bukkit.craftbukkit.Main.main(Main.java:242) ~[paper-1.21.6.jar:1.21.6-13-74fbcce]
-	at io.papermc.paperclip.Paperclip.lambda$main$0(Paperclip.java:42) ~[app:?]
+[10:54:43] [ServerMain/INFO]: Environment: Environment[sessionHost=https://sessionserver.mojang.com, servicesHost=https://api.minecraftservices.com, name=PROD]
+[10:54:44] [ServerMain/INFO]: Loaded 1407 recipes
+[10:54:44] [ServerMain/INFO]: Loaded 1520 advancements
+[10:54:44] [ServerMain/INFO]: [ca.spottedleaf.dataconverter.minecraft.datatypes.MCTypeRegistry] Initialising converters for DataConverter...
+[10:54:44] [ServerMain/INFO]: [ca.spottedleaf.dataconverter.minecraft.datatypes.MCTypeRegistry] Finished initialising converters for DataConverter in 257.0ms
+[10:54:44] [Server thread/INFO]: Starting minecraft server version 1.21.6
+[10:54:44] [Server thread/INFO]: Loading properties
+[10:54:44] [Server thread/INFO]: This server is running Paper version 1.21.6-21-main@29fc853 (2025-06-21T06:10:40Z) (Implementing API version 1.21.6-R0.1-SNAPSHOT)
+[10:54:44] [Server thread/INFO]: [spark] This server bundles the spark profiler. For more information please visit https://docs.papermc.io/paper/profiling
+[10:54:44] [Server thread/INFO]: Server Ping Player Sample Count: 12
+[10:54:44] [Server thread/INFO]: Using 4 threads for Netty based IO
+[10:54:44] [Server thread/INFO]: [MoonriseCommon] Paper is using 4 worker threads, 1 I/O threads
+[10:54:45] [Server thread/INFO]: [ChunkTaskScheduler] Chunk system is using population gen parallelism: true
+[10:54:45] [Server thread/INFO]: Default game type: SURVIVAL
+[10:54:45] [Server thread/INFO]: Generating keypair
+[10:54:45] [Server thread/INFO]: Starting Minecraft server on *:10470
+[10:54:45] [Server thread/INFO]: Using epoll channel type
+[10:54:45] [Server thread/INFO]: Paper: Using libdeflate (Linux x86_64) compression from Velocity.
+[10:54:45] [Server thread/INFO]: Paper: Using OpenSSL 3.x.x (Linux x86_64) cipher from Velocity.
+[10:54:45] [Server thread/INFO]: [CordPlanter] Loading server plugin CordPlanter v1.0-SNAPSHOT
+[10:54:45] [Server thread/INFO]: Server permissions file permissions.yml is empty, ignoring it
+[10:54:45] [Server thread/INFO]: Preparing level "world"
+[10:54:45] [Server thread/INFO]: Preparing start region for dimension minecraft:overworld
+[10:54:45] [Server thread/INFO]: Preparing spawn area: 0%
+[10:54:46] [Server thread/INFO]: Preparing spawn area: 26%
+[10:54:46] [Server thread/INFO]: Time elapsed: 563 ms
+[10:54:46] [Server thread/INFO]: Preparing start region for dimension minecraft:the_nether
+[10:54:46] [Server thread/INFO]: Preparing spawn area: 0%
+[10:54:46] [Server thread/INFO]: Time elapsed: 71 ms
+[10:54:46] [Server thread/INFO]: Preparing start region for dimension minecraft:the_end
+[10:54:46] [Server thread/INFO]: Preparing spawn area: 0%
+[10:54:46] [Server thread/INFO]: Time elapsed: 37 ms
+[10:54:46] [Server thread/INFO]: [CordPlanter] Enabling CordPlanter v1.0-SNAPSHOT
+[10:54:46] [Server thread/INFO]: [spark] Starting background profiler...
+[10:54:46] [Server thread/INFO]: Done preparing level "world" (1.139s)
+[10:54:46] [Server thread/INFO]: Running delayed init tasks
+[10:54:46] [Server thread/INFO]: Done (7.608s)! For help, type "help"
+[10:54:47] [User Authenticator #0/INFO]: UUID of player Sheepearrr is 486329f7-63e4-4211-8dcf-b9f424908750
+[10:54:47] [Server thread/INFO]: Sheepearrr joined the game
+[10:54:47] [Server thread/INFO]: Sheepearrr[/[0:0:0:0:0:0:0:1]:50450] logged in with entity id 20 at ([world]-10.035116237762375, 126.09821620900246, 172.0291633452032)
+[10:54:54] [Server thread/INFO]: Sheepearrr issued server command: /bossbardion
+[10:54:57] [Server thread/INFO]: Sheepearrr issued server command: /bossbardimod
+[10:54:57] [Server thread/INFO]: Sheepearrr issued server command: /bossbardimod
+[10:54:58] [Server thread/INFO]: Sheepearrr issued server command: /bossbardimod
+[10:54:58] [Server thread/INFO]: Sheepearrr issued server command: /bossbardimod
+[10:54:58] [Server thread/INFO]: Sheepearrr issued server command: /bossbardimod
+[10:54:59] [Server thread/INFO]: Sheepearrr issued server command: /bossbardimod
+[10:54:59] [Server thread/INFO]: Sheepearrr issued server command: /bossbardimod
+[10:54:59] [Server thread/INFO]: Sheepearrr issued server command: /bossbardimod
+[10:55:00] [Server thread/INFO]: Sheepearrr issued server command: /bossbardimod
+[10:55:00] [Server thread/INFO]: Sheepearrr issued server command: /bossbardimod
+[10:55:01] [Server thread/INFO]: Sheepearrr issued server command: /bossbardimod
+[10:55:01] [Server thread/INFO]: Sheepearrr issued server command: /bossbardimod
+[10:55:01] [Server thread/INFO]: Sheepearrr issued server command: /bossbardimod
+[10:55:02] [Server thread/INFO]: Sheepearrr issued server command: /bossbardimod
+[10:55:02] [Server thread/INFO]: Sheepearrr issued server command: /bossbardimod
+[10:55:02] [Server thread/INFO]: Sheepearrr issued server command: /bossbardimod
+[10:55:02] [Server thread/INFO]: Sheepearrr issued server command: /bossbardimod
+[10:55:03] [Server thread/INFO]: Sheepearrr issued server command: /bossbardimod
+[10:55:03] [Server thread/INFO]: Sheepearrr issued server command: /bossbardimod
+[10:55:04] [Server thread/INFO]: Sheepearrr issued server command: /bossbardimod
+[10:55:04] [Server thread/INFO]: Sheepearrr issued server command: /bossbardimod
+[10:55:04] [Server thread/INFO]: Sheepearrr issued server command: /bossbardimod
+[10:55:06] [Server thread/INFO]: Sheepearrr issued server command: /bossbardioff
+[10:55:09] [Server thread/INFO]: Sheepearrr issued server command: /bossbardion
+[10:55:10] [Server thread/INFO]: Sheepearrr issued server command: /bossbardimod
+[10:55:11] [Server thread/INFO]: Sheepearrr issued server command: /bossbardimod
+[10:55:11] [Server thread/INFO]: Sheepearrr issued server command: /bossbardimod
+[10:55:12] [Server thread/INFO]: Sheepearrr issued server command: /bossbardimod
+[10:55:12] [Server thread/INFO]: Sheepearrr issued server command: /bossbardimod
+[10:55:12] [Server thread/INFO]: Sheepearrr issued server command: /bossbardimod
+[10:55:12] [Server thread/INFO]: Sheepearrr issued server command: /bossbardimod
+[10:55:13] [Server thread/INFO]: Sheepearrr issued server command: /bossbardimod
+[10:55:13] [Server thread/INFO]: Sheepearrr issued server command: /bossbardimod
+[10:55:13] [Server thread/INFO]: Sheepearrr issued server command: /bossbardimod
+[10:55:14] [Server thread/INFO]: Sheepearrr issued server command: /bossbardimodt
+[10:55:35] [Server thread/INFO]: Sheepearrr issued server command: /bossbardimod
+[10:55:36] [Server thread/INFO]: Sheepearrr issued server command: /bossbardimod
+[10:55:36] [Server thread/INFO]: Sheepearrr issued server command: /bossbardimod
+[10:55:36] [Server thread/INFO]: Sheepearrr issued server command: /bossbardimod
+[10:55:37] [Server thread/INFO]: Sheepearrr issued server command: /bossbardimod
+[10:55:37] [Server thread/INFO]: Sheepearrr issued server command: /bossbardimod
+[10:55:38] [Server thread/INFO]: Sheepearrr issued server command: /bossbardimod
+[10:55:38] [Server thread/INFO]: Sheepearrr issued server command: /bossbardimod
+[10:55:38] [Server thread/INFO]: Sheepearrr issued server command: /bossbardimod
+[10:55:39] [Server thread/INFO]: Sheepearrr issued server command: /bossbardimod
+[10:55:39] [Server thread/INFO]: Sheepearrr issued server command: /bossbardimod
+[10:55:39] [Server thread/INFO]: Sheepearrr issued server command: /bossbardimod
+[10:55:39] [Server thread/INFO]: Sheepearrr issued server command: /bossbardimod
+[10:55:40] [Server thread/INFO]: Sheepearrr issued server command: /bossbardimod
+[10:55:40] [Server thread/INFO]: Sheepearrr issued server command: /bossbardimod
+[10:55:40] [Server thread/INFO]: Sheepearrr issued server command: /bossbardimod
+[10:55:41] [Server thread/INFO]: Sheepearrr issued server command: /bossbardimod
+[10:55:41] [Server thread/INFO]: Sheepearrr issued server command: /bossbardimod
+[10:55:42] [Server thread/INFO]: Sheepearrr issued server command: /bossbardimod
+[10:55:42] [Server thread/INFO]: Sheepearrr issued server command: /bossbardimod
+[10:55:42] [Server thread/INFO]: Sheepearrr issued server command: /bossbardimod
+[10:55:42] [Server thread/INFO]: Sheepearrr issued server command: /bossbardimod
+[10:55:43] [Server thread/INFO]: Sheepearrr issued server command: /bossbardimod
+[10:55:43] [Server thread/INFO]: Sheepearrr issued server command: /bossbardimod
+[10:55:43] [Server thread/INFO]: Sheepearrr issued server command: /bossbardimod
+[10:55:44] [Server thread/INFO]: Sheepearrr issued server command: /bossbardimod
+[10:55:44] [Server thread/INFO]: Sheepearrr issued server command: /bossbardimod
+[10:55:44] [Server thread/INFO]: Sheepearrr issued server command: /bossbardimod
+[10:55:45] [Server thread/INFO]: Sheepearrr issued server command: /bossbardimod
+[10:55:45] [Server thread/INFO]: Sheepearrr issued server command: /bossbardimod
+[10:55:45] [Server thread/INFO]: Sheepearrr issued server command: /bossbardimod
+[10:55:46] [Server thread/INFO]: Sheepearrr issued server command: /bossbardimod
+[10:55:46] [Server thread/INFO]: Sheepearrr issued server command: /bossbardimod
+[10:55:46] [Server thread/INFO]: Sheepearrr issued server command: /bossbardimod
+[10:55:47] [Server thread/INFO]: Sheepearrr issued server command: /bossbardimod
+[10:55:47] [Server thread/INFO]: Sheepearrr issued server command: /bossbardimod
+[10:55:47] [Server thread/INFO]: Sheepearrr issued server command: /bossbardimod
+[10:55:48] [Server thread/INFO]: Sheepearrr issued server command: /bossbardimod
+[10:55:48] [Server thread/INFO]: Sheepearrr issued server command: /bossbardimod
+[10:55:48] [Server thread/INFO]: Sheepearrr issued server command: /bossbardimod
+[10:55:49] [Server thread/INFO]: Sheepearrr issued server command: /bossbardimod
+[10:55:49] [Server thread/INFO]: Sheepearrr issued server command: /bossbardimod
+[10:55:50] [Server thread/INFO]: Sheepearrr issued server command: /bossbardimod
+[10:55:50] [Server thread/INFO]: Sheepearrr issued server command: /bossbardimod
+[10:55:50] [Server thread/INFO]: Sheepearrr issued server command: /bossbardimod
+[10:55:51] [Server thread/INFO]: Sheepearrr issued server command: /bossbardimod
+[10:55:51] [Server thread/INFO]: Sheepearrr issued server command: /bossbardimod
+[10:55:51] [Server thread/INFO]: Sheepearrr issued server command: /bossbardimod
+[10:55:52] [Server thread/INFO]: Sheepearrr issued server command: /bossbardimod
+[10:55:52] [Server thread/INFO]: Sheepearrr issued server command: /bossbardimod
+[10:55:53] [Server thread/INFO]: Sheepearrr issued server command: /bossbardimod
+[10:55:53] [Server thread/INFO]: Sheepearrr issued server command: /bossbardimod
+[10:55:53] [Server thread/INFO]: Sheepearrr issued server command: /bossbardimod
+[10:55:54] [Server thread/INFO]: Sheepearrr issued server command: /bossbardimod
+[10:55:54] [Server thread/INFO]: Sheepearrr issued server command: /bossbardimod
+[10:55:54] [Server thread/INFO]: Sheepearrr issued server command: /bossbardimod
+[10:55:55] [Server thread/INFO]: Sheepearrr issued server command: /bossbardimod
+[10:55:55] [Server thread/INFO]: Sheepearrr issued server command: /bossbardimod
+[10:55:56] [Server thread/INFO]: Sheepearrr issued server command: /bossbardimod
+[10:55:56] [Server thread/INFO]: Sheepearrr issued server command: /bossbardimod
+[10:55:56] [Server thread/INFO]: Sheepearrr issued server command: /bossbardimod
+[10:55:57] [Server thread/INFO]: Sheepearrr issued server command: /bossbardimod
+[10:55:57] [Server thread/INFO]: Sheepearrr issued server command: /bossbardimod
+[10:55:57] [Server thread/INFO]: Sheepearrr issued server command: /bossbardimod
+[10:55:58] [Server thread/INFO]: Sheepearrr issued server command: /bossbardimod
+[10:55:58] [Server thread/INFO]: Sheepearrr issued server command: /bossbardimod
+[10:55:59] [Server thread/INFO]: Sheepearrr issued server command: /bossbardimod
+[10:55:59] [Server thread/INFO]: Sheepearrr issued server command: /bossbardimod
+[10:56:00] [Server thread/INFO]: Sheepearrr issued server command: /bossbardimod
+[10:56:00] [Server thread/ERROR]: Command exception: /bossbardimod
+java.lang.IllegalArgumentException: progress must be between 0.0 and 1.0, was -0.009999568
+	at net.kyori.adventure.bossbar.BossBarImpl.checkProgress(BossBarImpl.java:122) ~[adventure-api-4.21.0.jar:?]
+	at net.kyori.adventure.bossbar.BossBarImpl.progress(BossBarImpl.java:111) ~[adventure-api-4.21.0.jar:?]
+	at CordPlanter-1.0-SNAPSHOT.jar/eu.sheepearrr.cordplanter.util.methodcontainer.Audience.modifyBossBar(Audience.java:92) ~[CordPlanter-1.0-SNAPSHOT.jar:?]
+	at CordPlanter-1.0-SNAPSHOT.jar/eu.sheepearrr.cordplanter.util.MethodContext.executes(MethodContext.java:74) ~[CordPlanter-1.0-SNAPSHOT.jar:?]
+	at CordPlanter-1.0-SNAPSHOT.jar/eu.sheepearrr.cordplanter.CordPlanterBootstrap.lambda$bootstrap$11(CordPlanterBootstrap.java:326) ~[CordPlanter-1.0-SNAPSHOT.jar:?]
+	at com.mojang.brigadier.context.ContextChain.runExecutable(ContextChain.java:73) ~[brigadier-1.3.10.jar:?]
+	at net.minecraft.commands.execution.tasks.ExecuteCommand.execute(ExecuteCommand.java:30) ~[paper-1.21.6.jar:1.21.6-21-29fc853]
+	at net.minecraft.commands.execution.tasks.ExecuteCommand.execute(ExecuteCommand.java:13) ~[paper-1.21.6.jar:1.21.6-21-29fc853]
+	at net.minecraft.commands.execution.UnboundEntryAction.lambda$bind$0(UnboundEntryAction.java:8) ~[paper-1.21.6.jar:1.21.6-21-29fc853]
+	at net.minecraft.commands.execution.CommandQueueEntry.execute(CommandQueueEntry.java:5) ~[paper-1.21.6.jar:1.21.6-21-29fc853]
+	at net.minecraft.commands.execution.ExecutionContext.runCommandQueue(ExecutionContext.java:105) ~[paper-1.21.6.jar:1.21.6-21-29fc853]
+	at net.minecraft.commands.Commands.executeCommandInContext(Commands.java:484) ~[paper-1.21.6.jar:1.21.6-21-29fc853]
+	at net.minecraft.commands.Commands.performCommand(Commands.java:392) ~[paper-1.21.6.jar:1.21.6-21-29fc853]
+	at net.minecraft.commands.Commands.performCommand(Commands.java:382) ~[paper-1.21.6.jar:1.21.6-21-29fc853]
+	at net.minecraft.commands.Commands.performCommand(Commands.java:376) ~[paper-1.21.6.jar:1.21.6-21-29fc853]
+	at net.minecraft.server.network.ServerGamePacketListenerImpl.performUnsignedChatCommand(ServerGamePacketListenerImpl.java:2303) ~[paper-1.21.6.jar:1.21.6-21-29fc853]
+	at net.minecraft.server.network.ServerGamePacketListenerImpl.lambda$handleChatCommand$12(ServerGamePacketListenerImpl.java:2276) ~[paper-1.21.6.jar:1.21.6-21-29fc853]
+	at net.minecraft.server.TickTask.run(TickTask.java:18) ~[paper-1.21.6.jar:1.21.6-21-29fc853]
+	at net.minecraft.util.thread.BlockableEventLoop.doRunTask(BlockableEventLoop.java:155) ~[paper-1.21.6.jar:1.21.6-21-29fc853]
+	at net.minecraft.util.thread.ReentrantBlockableEventLoop.doRunTask(ReentrantBlockableEventLoop.java:24) ~[paper-1.21.6.jar:1.21.6-21-29fc853]
+	at net.minecraft.server.MinecraftServer.doRunTask(MinecraftServer.java:1448) ~[paper-1.21.6.jar:1.21.6-21-29fc853]
+	at net.minecraft.server.MinecraftServer.doRunTask(MinecraftServer.java:176) ~[paper-1.21.6.jar:1.21.6-21-29fc853]
+	at net.minecraft.util.thread.BlockableEventLoop.pollTask(BlockableEventLoop.java:129) ~[paper-1.21.6.jar:1.21.6-21-29fc853]
+	at net.minecraft.server.MinecraftServer.pollTaskInternal(MinecraftServer.java:1428) ~[paper-1.21.6.jar:1.21.6-21-29fc853]
+	at net.minecraft.server.MinecraftServer.pollTask(MinecraftServer.java:1422) ~[paper-1.21.6.jar:1.21.6-21-29fc853]
+	at net.minecraft.util.thread.BlockableEventLoop.managedBlock(BlockableEventLoop.java:139) ~[paper-1.21.6.jar:1.21.6-21-29fc853]
+	at net.minecraft.server.MinecraftServer.managedBlock(MinecraftServer.java:1379) ~[paper-1.21.6.jar:1.21.6-21-29fc853]
+	at net.minecraft.server.MinecraftServer.waitUntilNextTick(MinecraftServer.java:1387) ~[paper-1.21.6.jar:1.21.6-21-29fc853]
+	at net.minecraft.server.MinecraftServer.runServer(MinecraftServer.java:1264) ~[paper-1.21.6.jar:1.21.6-21-29fc853]
+	at net.minecraft.server.MinecraftServer.lambda$spin$2(MinecraftServer.java:310) ~[paper-1.21.6.jar:1.21.6-21-29fc853]
 	at java.base/java.lang.Thread.run(Thread.java:1583) ~[?:?]
+[10:56:03] [Thread-0/WARN]: java.lang.Throwable: Server stopped
+[10:56:03] [Thread-0/WARN]: 	at io.papermc.paper.util.TraceUtil.dumpTraceForThread(TraceUtil.java:16)
+[10:56:03] [Thread-0/WARN]: 	at net.minecraft.server.MinecraftServer.safeShutdown(MinecraftServer.java:1098)
+[10:56:03] [Thread-0/WARN]: 	at org.bukkit.craftbukkit.util.ServerShutdownThread.run(ServerShutdownThread.java:16)
+[10:56:03] [Server thread/INFO]: Stopping server
+[10:56:03] [Server thread/INFO]: [CordPlanter] Disabling CordPlanter v1.0-SNAPSHOT
+[10:56:03] [Server thread/INFO]: Saving players
+[10:56:03] [Server thread/INFO]: Sheepearrr lost connection: Server closed
+[10:56:03] [Server thread/INFO]: Sheepearrr left the game
+[10:56:03] [Server thread/INFO]: Saving worlds
+[10:56:03] [Server thread/INFO]: Saving chunks for level 'ServerLevel[world]'/minecraft:overworld
+[10:56:04] [Server thread/INFO]: [ChunkHolderManager] Waiting 60s for chunk system to halt for world 'world'
+[10:56:04] [Server thread/INFO]: [ChunkHolderManager] Halted chunk system for world 'world'
+[10:56:04] [Server thread/INFO]: [ChunkHolderManager] Saving all chunkholders for world 'world'
+[10:56:04] [Server thread/INFO]: [ChunkHolderManager] Saved 976 block chunks, 752 entity chunks, 0 poi chunks in world 'world' in 0.63s
+[10:56:04] [Server thread/INFO]: [ChunkHolderManager] Waiting 60s for chunk I/O to halt for world 'world'
+[10:56:04] [Server thread/INFO]: [ChunkHolderManager] Halted I/O scheduler for world 'world'
+[10:56:04] [Server thread/INFO]: Saving chunks for level 'ServerLevel[world_nether]'/minecraft:the_nether
+[10:56:04] [Server thread/INFO]: [ChunkHolderManager] Waiting 60s for chunk system to halt for world 'world_nether'
+[10:56:04] [Server thread/INFO]: [ChunkHolderManager] Halted chunk system for world 'world_nether'
+[10:56:04] [Server thread/INFO]: [ChunkHolderManager] Saving all chunkholders for world 'world_nether'
+[10:56:04] [Server thread/INFO]: [ChunkHolderManager] Saved 49 block chunks, 49 entity chunks, 0 poi chunks in world 'world_nether' in 0.02s
+[10:56:04] [Server thread/INFO]: [ChunkHolderManager] Waiting 60s for chunk I/O to halt for world 'world_nether'
+[10:56:04] [Server thread/INFO]: [ChunkHolderManager] Halted I/O scheduler for world 'world_nether'
+[10:56:04] [Server thread/INFO]: Saving chunks for level 'ServerLevel[world_the_end]'/minecraft:the_end
+[10:56:04] [Server thread/INFO]: [ChunkHolderManager] Waiting 60s for chunk system to halt for world 'world_the_end'
+[10:56:04] [Server thread/INFO]: [ChunkHolderManager] Halted chunk system for world 'world_the_end'
+[10:56:04] [Server thread/INFO]: [ChunkHolderManager] Saving all chunkholders for world 'world_the_end'
+[10:56:04] [Server thread/INFO]: [ChunkHolderManager] Saved 49 block chunks, 49 entity chunks, 0 poi chunks in world 'world_the_end' in 0.01s
+[10:56:04] [Server thread/INFO]: [ChunkHolderManager] Waiting 60s for chunk I/O to halt for world 'world_the_end'
+[10:56:04] [Server thread/INFO]: [ChunkHolderManager] Halted I/O scheduler for world 'world_the_end'
+[10:56:04] [Server thread/INFO]: ThreadedAnvilChunkStorage (world): All chunks are saved
+[10:56:04] [Server thread/INFO]: ThreadedAnvilChunkStorage (DIM-1): All chunks are saved
+[10:56:04] [Server thread/INFO]: ThreadedAnvilChunkStorage (DIM1): All chunks are saved
+[10:56:04] [Server thread/INFO]: ThreadedAnvilChunkStorage: All dimensions are saved
+[10:56:04] [Server thread/INFO]: Waiting for all RegionFile I/O tasks to complete...
+[10:56:04] [Server thread/INFO]: All RegionFile I/O tasks to complete
+[10:56:04] [Server thread/INFO]: [MoonriseCommon] Awaiting termination of worker pool for up to 60s...
+[10:56:04] [Server thread/INFO]: [MoonriseCommon] Awaiting termination of I/O pool for up to 60s...

@@ -28,6 +28,7 @@ import io.papermc.paper.registry.event.RegistryEvents;
 import io.papermc.paper.registry.tag.TagKey;
 import net.kyori.adventure.key.Key;
 import net.kyori.adventure.text.Component;
+import net.kyori.adventure.text.TranslatableComponent;
 import net.kyori.adventure.text.format.TextDecoration;
 import net.kyori.adventure.title.Title;
 import org.bukkit.inventory.ItemType;
@@ -53,6 +54,7 @@ public class CordPlanterBootstrap implements PluginBootstrap {
     public Map<String, JsonObject> commands = new HashMap<>();
     public Map<String, Map<String, JsonObject>> tags = new HashMap<>();
     public Map<String, Boolean> settings = new HashMap<>();
+    public Map<String, Object> internalVariables = new HashMap<>();
 
     @Override
     public void bootstrap(BootstrapContext bootstrapContext) {

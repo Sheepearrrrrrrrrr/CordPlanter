@@ -5,6 +5,7 @@ import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 import com.mojang.brigadier.Command;
 import com.mojang.brigadier.context.CommandContext;
+import eu.sheepearrr.cordplanter.CordPlanterBootstrap;
 import io.papermc.paper.command.brigadier.CommandSourceStack;
 import org.bukkit.Bukkit;
 import org.bukkit.Location;
@@ -31,12 +32,28 @@ public class MethodContext {
         this.props = props;
     }
 
+    public void setVariableTo(String name, Object value) {
+        this.props.put(name, value);
+    }
+
+    public Object getVariable(String name) {
+        return this.props.get(name);
+    }
+
+    public void setInternalVariableTo(String name, Object value) {
+        CordPlanterBootstrap.INSTANCE.internalVariables.put(name, value);
+    }
+
+    public Object getInternalVariable(String name) {
+        return CordPlanterBootstrap.INSTANCE.internalVariables.get(name);
+    }
+
     public boolean requires(CommandSourceStack stack) {
         for (JsonElement element : commands) {
             JsonObject obj = element.getAsJsonObject();
             switch (obj.get("type").getAsString()) {
                 case "return" -> {
-                    return getExpression(obj.get("value").getAsJsonObject(), stack).apply(obj.get("value").getAsJsonObject().getAsJsonArray("args"));
+                    return (boolean) getExpression(obj.get("value").getAsJsonObject(), stack).apply(obj.get("value").getAsJsonObject().getAsJsonArray("args"));
                 }
                 case "method" -> {
                     getExpression(obj, stack).apply(obj.getAsJsonArray("args"));
@@ -52,7 +69,7 @@ public class MethodContext {
             JsonObject obj = element.getAsJsonObject();
             switch (obj.get("type").getAsString()) {
                 case "return" -> {
-                    return getExpression(obj.get("value").getAsJsonObject(), stack.getSource()).apply(obj.get("value").getAsJsonObject().getAsJsonArray("args")) ? Command.SINGLE_SUCCESS : -1;
+                    return (int) getExpression(obj.get("value").getAsJsonObject(), stack.getSource()).apply(obj.get("value").getAsJsonObject().getAsJsonArray("args"));
                 }
                 case "method" -> getExpression(obj, stack.getSource()).apply(obj.getAsJsonArray("args"));
                 default -> {}
@@ -61,8 +78,10 @@ public class MethodContext {
         return Command.SINGLE_SUCCESS;
     }
 
-    public Function<JsonArray, Boolean> getExpression(JsonObject obj, CommandSourceStack stack) {
-        this.lastStack = stack;
+    public Function<JsonArray, Object> getExpression(JsonObject obj, CommandSourceStack stack) {
+        if (stack != null) {
+            this.lastStack = stack;
+        }
         if (props.get(obj.get("from").getAsString()) != null) {
             return switch (props.get(obj.get("from").getAsString())) {
                 case Player player -> new eu.sheepearrr.cordplanter.util.methodcontainer.Player(player, this).getExpression(obj);
@@ -70,32 +89,18 @@ public class MethodContext {
                 default -> null;
             };
         }
-        return switch (props.get("method").toString()) {
-            case "with_executer" -> this::withExecuter;
-            case "with_location" -> this::withLocation;
-            default -> null;
-        };
-    }
-    
-    public Function<JsonArray, Object> getReturningExpression(JsonObject obj, CommandSourceStack stack) {
-        if (stack != null) {
-            this.lastStack = stack;
-        }
-        if (props.get(obj.get("from").getAsString()) != null) {
-            return switch (props.get(obj.get("from").getAsString())) {
-                case Player player -> new eu.sheepearrr.cordplanter.util.methodcontainer.Player(player, this).getReturningExpression(obj);
-                case CommandSender sender -> new eu.sheepearrr.cordplanter.util.methodcontainer.CommandSender(sender, this).getReturningExpression(obj);
+        if (obj.has("method")) {
+            return switch (obj.get("method").toString()) {
+                case "with_executer" -> this::withExecuter;
+                case "with_location" -> this::withLocation;
                 default -> null;
             };
         }
-        return switch (props.get("method").toString()) {
-            case "with_executer" -> this::withExecuter;
-            case "with_location" -> this::withLocation;
-            default -> null;
-        };
+        return null;
     }
 
     public boolean withExecuter(JsonArray args) {
+        /* TODO */
         return true;
     }
 

@@ -5,6 +5,7 @@ import com.google.gson.JsonArray;
 import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 import eu.sheepearrr.cordplanter.CordPlanter;
+import eu.sheepearrr.cordplanter.CordPlanterBootstrap;
 import net.kyori.adventure.key.Key;
 import net.kyori.adventure.text.BlockNBTComponent;
 import net.kyori.adventure.text.Component;
@@ -44,7 +45,7 @@ public class TextBuilder {
         Component comp;
         if (jsonObj.has("text")) {
             String text = jsonObj.get("text").getAsString();
-            if (text.contains("$#") && mContext != null) {
+            if (text.contains("$#") && mContext != null && CordPlanterBootstrap.INSTANCE.settings.get("allow_text_replacement")) {
                 for (int index = text.indexOf("$#"); index >= 0; index = text.indexOf("$#", index + 1)) {
                     StringBuilder toReplace = new StringBuilder();
                     int end = text.length();
@@ -58,21 +59,42 @@ public class TextBuilder {
                     List<String> idkfem = new ArrayList<>();
                     String idkidk = toReplace.toString();
                     StringBuilder prevThings = new StringBuilder();
+                    boolean isParsingArgs = false;
+                    JsonArray args = null;
                     for (int i = 0; i < idkidk.length(); i++) {
+                        if (idkidk.charAt(i) == '[') {
+                            isParsingArgs = true;
+                        }
                         if (idkidk.charAt(i) == '&') {
                             idkfem.add(prevThings.toString());
                             prevThings = new StringBuilder();
                             continue;
                         }
                         prevThings.append(idkidk.charAt(i));
+                        if (idkidk.charAt(i) == ']' && isParsingArgs) {
+                            args = new Gson().fromJson(prevThings.toString(), JsonArray.class);
+                            break;
+                        }
                         if (i >= idkidk.length() - 1) {
                             idkfem.add(prevThings.toString());
                         }
                     }
                     JsonObject fakeAssThingy = new JsonObject();
-                    fakeAssThingy.addProperty("from", idkfem.get(0));
-                    fakeAssThingy.addProperty("method", idkfem.get(1));
-                    text = text.substring(0, index) + mContext.getReturningExpression(fakeAssThingy, null).apply(new JsonArray()).toString() + (end + 2 < text.length() ? text.substring(end + 2) : "") ;
+                    if (idkfem.size() > 1) {
+                        fakeAssThingy.addProperty("from", idkfem.get(0));
+                        fakeAssThingy.addProperty("method", idkfem.get(1));
+                    } else if (!idkfem.isEmpty()) {
+                        String lalala = idkfem.getFirst();
+                        if (lalala.endsWith("@")) {
+                            fakeAssThingy.addProperty("from", lalala);
+                        } else {
+                            fakeAssThingy.addProperty("method", lalala);
+                        }
+                    } else {
+                        parseError(jsonObj);
+                        return Component.empty();
+                    }
+                    text = text.substring(0, index) + mContext.getExpression(fakeAssThingy, null).apply(args != null ? args : new JsonArray()).toString() + (end + 2 < text.length() ? text.substring(end + 2) : "") ;
                 }
             }
             comp = Component.text(text);

@@ -32,11 +32,100 @@
                 "color": "gold"
               },
               {
-                "text": "$#sender&name#$",
+                "text": "$#sender&get_name#$",
                 "color": "red"
               },
               "!"
             ]
+          ]
+        }
+      ]
+    },
+    {
+      "type": "base",
+      "base": "command",
+      "name": "bossbardion",
+      "executes": [
+        {
+          "type": "method",
+          "from": "sender",
+          "method": "show_bossbar",
+          "args": [
+            {
+              "name": [
+                "",
+                {
+                  "text": "Hello $#sender&get_name#$!",
+                  "color": "gold"
+                }
+              ],
+              "progress": 78,
+              "color": "red",
+              "overlay": "progress"
+            },
+            {
+              "base": true,
+              "type": "internal",
+              "name": "test_bossbar"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "type": "base",
+      "base": "command",
+      "name": "bossbardioff",
+      "executes": [
+        {
+          "type": "method",
+          "from": "sender",
+          "method": "hide_bossbar",
+          "args": [
+            {
+              "type": "internal",
+              "name": "test_bossbar"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "type": "base",
+      "base": "command",
+      "name": "bossbardimod",
+      "executes": [
+        {
+          "type": "method",
+          "from": "sender",
+          "method": "modify_bossbar",
+          "args": [
+            {
+              "type": "internal",
+              "name": "test_bossbar"
+            },
+            [
+              {
+                "type": "add_progress",
+                "amount": -1
+              },
+              {
+                "type": "append_to_name",
+                "to_append": [
+                  "",
+                  {
+                    "text": "M",
+                    "color": "blue",
+                    "bold": true
+                  }
+                ]
+              }
+            ],
+            {
+              "base": true,
+              "type": "internal",
+              "name": "test_bossbar"
+            }
           ]
         }
       ]

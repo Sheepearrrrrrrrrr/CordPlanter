@@ -8,13 +8,12 @@ import eu.sheepearrr.cordplanter.CordPlanter;
 import java.util.function.Function;
 
 public interface BasicMethodContainer {
-    default Function<JsonArray, Boolean> getExpression(JsonObject obj) {
-        CordPlanter.LOGGER.warn("Couldn't find returning expression: \"" + obj.get("method").getAsString() + "\"");
+    default Function<JsonArray, Object> getExpression(JsonObject obj) {
+        CordPlanter.LOGGER.warn("Couldn't find expression: \"" + obj.get("method").getAsString() + "\"");
         return null;
     }
 
-    default Function<JsonArray, Object> getReturningExpression(JsonObject obj) {
-        CordPlanter.LOGGER.warn("Couldn't find returning expression: \"" + obj.get("method").getAsString() + "\"");
+    default Object returnThis(JsonArray args) {
         return null;
     }
 }
