@@ -30,6 +30,8 @@ import io.papermc.paper.registry.tag.TagKey;
 import net.kyori.adventure.key.Key;
 import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.TranslatableComponent;
+import net.kyori.adventure.text.event.ClickEvent;
+import net.kyori.adventure.text.event.HoverEvent;
 import net.kyori.adventure.text.format.TextDecoration;
 import net.kyori.adventure.title.Title;
 import org.bukkit.inventory.ItemType;
@@ -99,22 +101,7 @@ public class CordPlanterBootstrap implements PluginBootstrap {
             if (!data.has("disable_format_warning")) {
                 data.addProperty("disable_format_warning", false);
             }
-            if (data.get("settings").getAsJsonObject().isEmpty()) {
-                URL defaultSettingsUrl = new URL("https://raw.githubusercontent.com/Sheepearrrrrrrrrr/Data/refs/heads/main/cordplanter/default_settings/" + currentFormat + ".json");
-                HttpURLConnection conn = (HttpURLConnection) defaultSettingsUrl.openConnection();
-                conn.setRequestMethod("GET");
-                conn.setDoOutput(true);
-                BufferedReader rd = new BufferedReader(new InputStreamReader(conn.getInputStream()));
-                this.data.add("settings", gson.fromJson(rd, JsonObject.class));
-                rd.close();
-                conn.disconnect();
-            }
-            for (Entry<String, JsonElement> entry : this.data.getAsJsonObject("settings").entrySet()) {
-                this.settings.put(entry.getKey(), entry.getValue().getAsBoolean());
-            }
-            if (!this.settings.get("require_current_format") && !this.data.get("disable_format_warning").getAsBoolean()) {
-                CordPlanter.LOGGER.warn("\n===========================================================================================================================================================\n\n!!! WARNING !!!\n\nCordPlanter is configured to not require workspaces to use the current format. This could lead to the incorrect reading of definitions or missing features.\nFor the integrity of the plugin, I would enable this option.\nTo disable this warning, change \"disable_format_warning\" to true in the data.json config file.\n    - Sheepearrr, owner of CordPlanter\n\n===========================================================================================================================================================");
-            }
+            this.refreshCurrentFormatSettings(false);
             if (!workshopsDirectory.exists()) {
                 workshopsDirectory.mkdir();
             }
@@ -159,45 +146,46 @@ public class CordPlanterBootstrap implements PluginBootstrap {
                         Commands.literal("workspace")
                                 .requires(stack -> stack.getSender().isOp())
                                 .then(Commands.literal("list").executes(stack -> {
-                                    Component comp = Component.empty().append(Component.text("ℹ").color(TextBuilder.presetColors.get("dark_green"))).append(Component.text(" Workspaces (" + (enabledWorkspaces.size() + disabledWorkspaces.size()) + "):\n"));
-                                    boolean hasShit = false;
-                                    if (!enabledWorkspaces.isEmpty()) {
-                                        comp = comp.append(Component.text("Enabled\n    ").color(TextBuilder.presetColors.get("green")));
-                                        hasShit = true;
-                                        boolean i = false;
-                                        int j = 0;
-                                        int k = 0;
-                                        for (Map.Entry<String, WorkspaceProperties> entry : enabledWorkspaces.entrySet()) {
-                                            if (i && k < enabledWorkspaces.size()) comp = comp.append(Component.text(", "));
-                                            if (j >= 4 && k < enabledWorkspaces.size()) {
-                                                comp = comp.append(Component.text("\n    "));
-                                                j = 0;
-                                            }
-                                            comp = comp.append(Component.text(entry.getValue().displayName));
-                                            i = true;
-                                            j++;
-                                            k++;
+                                    Component comp = Component.empty().append(Component.text("ℹ").color(TextBuilder.presetColors.get("dark_green"))).append(Component.text(" Workspaces (" + (enabledWorkspaces.size() + disabledWorkspaces.size()) + "):"));
+                                    Map<String, ArrayList<Entry<String, WorkspaceProperties>>> versions = new HashMap<>();
+                                    for (Entry<String, WorkspaceProperties> entry : enabledWorkspaces.entrySet()) {
+                                        String format = entry.getValue().format;
+                                        if (versions.containsKey(format)) {
+                                            ArrayList<Entry<String, WorkspaceProperties>> idk = versions.get(format);
+                                            idk.add(entry);
+                                            versions.put(format, idk);
+                                            continue;
                                         }
+                                        versions.put(format, new ArrayList<>(List.of(entry)));
                                     }
-                                    if (!disabledWorkspaces.isEmpty()) {
-                                        if (hasShit) {
-                                            comp = comp.append(Component.text("\n"));
+                                    for (Entry<String, WorkspaceProperties> entry : disabledWorkspaces.entrySet()) {
+                                        String format = entry.getValue().format;
+                                        if (versions.containsKey(format)) {
+                                            ArrayList<Entry<String, WorkspaceProperties>> idk = versions.get(format);
+                                            idk.add(entry);
+                                            versions.put(format, idk);
+                                            continue;
                                         }
-                                        comp = comp.append(Component.text("Disabled\n    ").color(TextBuilder.presetColors.get("red")));
+                                        versions.put(format, new ArrayList<>(List.of(entry)));
+                                    }
+                                    for (Entry<String, ArrayList<Entry<String, WorkspaceProperties>>> format : versions.entrySet()) {
+                                        comp = comp.append(Component.text("\n").append(Component.text(format.getKey()).color(TextBuilder.presetColors.get(format.getKey().equals(currentFormat) ? "green" : (this.settings.get("require_current_format") ? "dark_red" : "red")))).append(Component.text(":\n    ")));
                                         boolean i = false;
                                         int j = 0;
-                                        int k = 0;
-                                        for (Map.Entry<String, WorkspaceProperties> entry : disabledWorkspaces.entrySet()) {
-                                            if (i && k < disabledWorkspaces.size()) comp = comp.append(Component.text(", "));
-                                            if (j >= 4 && k < disabledWorkspaces.size()) {
-                                                comp = comp.append(Component.text("\n    "));
+                                        Component prevComp = Component.empty();
+                                        for (Entry<String, WorkspaceProperties> entry : format.getValue()) {
+                                            if (i) {
+                                                prevComp = prevComp.append(Component.text(", "));
+                                            }
+                                            if (j >= 3) {
+                                                prevComp = prevComp.append(Component.text("\n    "));
                                                 j = 0;
                                             }
-                                            comp = comp.append(Component.text(entry.getValue().displayName));
+                                            prevComp = prevComp.append(Component.text(entry.getValue().displayName).color(TextBuilder.presetColors.get(disabledWorkspaces.containsKey(entry.getKey()) ? "red" : "green")));
                                             i = true;
                                             j++;
-                                            k++;
                                         }
+                                        comp = comp.append(prevComp);
                                     }
                                     stack.getSource().getSender().sendMessage(comp);
                                     return Command.SINGLE_SUCCESS;
@@ -213,7 +201,7 @@ public class CordPlanterBootstrap implements PluginBootstrap {
                                         disabledWorkspaces.put(name, enabledWorkspaces.get(name));
                                         enabledWorkspaces.remove(name);
                                         stack.getSource().getSender().sendMessage(
-                                                Component.empty()
+                                                Component.text()
                                                         .append(Component.text("CordPlanter").color(TextBuilder.presetColors.get("red")).decoration(TextDecoration.BOLD, TextDecoration.State.TRUE))
                                                         .append(Component.text(" | ").color(TextBuilder.presetColors.get("dark_gray")))
                                                         .append(Component.text("Disabled workspace ").color(TextBuilder.presetColors.get("gray")))
@@ -224,7 +212,7 @@ public class CordPlanterBootstrap implements PluginBootstrap {
                                         return Command.SINGLE_SUCCESS;
                                     }
                                     stack.getSource().getSender().sendMessage(
-                                            Component.empty()
+                                            Component.text()
                                                     .append(Component.text("CordPlanter").color(TextBuilder.presetColors.get("red")).decoration(TextDecoration.BOLD, TextDecoration.State.TRUE))
                                                     .append(Component.text(" | ").color(TextBuilder.presetColors.get("dark_gray")))
                                                     .append(Component.text("Couldn't find enabled workspace to disable.").color(TextBuilder.presetColors.get("gray")))
@@ -242,7 +230,7 @@ public class CordPlanterBootstrap implements PluginBootstrap {
                                         enabledWorkspaces.put(name, disabledWorkspaces.get(name));
                                         disabledWorkspaces.remove(name);
                                         stack.getSource().getSender().sendMessage(
-                                                Component.empty()
+                                                Component.text()
                                                         .append(Component.text("CordPlanter").color(TextBuilder.presetColors.get("red")).decoration(TextDecoration.BOLD, TextDecoration.State.TRUE))
                                                         .append(Component.text(" | ").color(TextBuilder.presetColors.get("dark_gray")))
                                                         .append(Component.text("Enabled workspace ").color(TextBuilder.presetColors.get("gray")))
@@ -253,23 +241,23 @@ public class CordPlanterBootstrap implements PluginBootstrap {
                                         return Command.SINGLE_SUCCESS;
                                     }
                                     stack.getSource().getSender().sendMessage(
-                                            Component.empty()
+                                            Component.text()
                                                     .append(Component.text("CordPlanter").color(TextBuilder.presetColors.get("red")).decoration(TextDecoration.BOLD, TextDecoration.State.TRUE))
                                                     .append(Component.text(" | ").color(TextBuilder.presetColors.get("dark_gray")))
                                                     .append(Component.text("Couldn't find disabled workspace to enable.").color(TextBuilder.presetColors.get("gray")))
                                     );
                                     return -1;
                                 })))
-                                .then(Commands.literal("settings").then(Commands.argument("setting", StringArgumentType.string()).suggests((context, builder) -> {
-                                    for (String setting : settings.keySet()) {
-                                        builder.suggest(setting);
-                                    }
-                                    return builder.buildFuture();
-                                }).then(Commands.literal("get").executes(stack -> {
+                                .then(Commands.literal("settings").then(Commands.literal("get").then(Commands.argument("setting", StringArgumentType.string()).suggests((context, builder) -> {
+                                            for (String setting : settings.keySet()) {
+                                                builder.suggest(setting);
+                                            }
+                                            return builder.buildFuture();
+                                    }).executes(stack -> {
                                     String setting = stack.getArgument("setting", String.class);
                                     if (settings.containsKey(setting)) {
                                         stack.getSource().getSender().sendMessage(
-                                                Component.empty()
+                                                Component.text()
                                                         .append(Component.text("CordPlanter").color(TextBuilder.presetColors.get("red")).decoration(TextDecoration.BOLD, TextDecoration.State.TRUE))
                                                         .append(Component.text(" | ").color(TextBuilder.presetColors.get("dark_gray")))
                                                         .append(Component.text(setting).color(TextBuilder.presetColors.get("red")))
@@ -280,13 +268,18 @@ public class CordPlanterBootstrap implements PluginBootstrap {
                                         return Command.SINGLE_SUCCESS;
                                     }
                                     return -1;
-                                })).then(Commands.literal("set").then(Commands.argument("state", BoolArgumentType.bool()).executes(stack -> {
+                                }))).then(Commands.literal("set").then(Commands.argument("setting", StringArgumentType.string()).suggests((context, builder) -> {
+                                            for (String setting : settings.keySet()) {
+                                                builder.suggest(setting);
+                                            }
+                                            return builder.buildFuture();
+                                }).then(Commands.argument("state", BoolArgumentType.bool()).executes(stack -> {
                                     String setting = stack.getArgument("setting", String.class);
                                     Boolean state = stack.getArgument("state", Boolean.class);
                                     if (settings.containsKey(setting)) {
                                         if (settings.get(setting) == state) {
                                             stack.getSource().getSender().sendMessage(
-                                                    Component.empty()
+                                                    Component.text()
                                                             .append(Component.text("CordPlanter").color(TextBuilder.presetColors.get("red")).decoration(TextDecoration.BOLD, TextDecoration.State.TRUE))
                                                             .append(Component.text(" | ").color(TextBuilder.presetColors.get("dark_gray")))
                                                             .append(Component.text(setting).color(TextBuilder.presetColors.get(state ? "green" : "red")))
@@ -295,7 +288,7 @@ public class CordPlanterBootstrap implements PluginBootstrap {
                                         } else {
                                             settings.put(setting, state);
                                             stack.getSource().getSender().sendMessage(
-                                                    Component.empty()
+                                                    Component.text()
                                                             .append(Component.text("CordPlanter").color(TextBuilder.presetColors.get("red")).decoration(TextDecoration.BOLD, TextDecoration.State.TRUE))
                                                             .append(Component.text(" | ").color(TextBuilder.presetColors.get("dark_gray")))
                                                             .append(Component.text(setting).color(TextBuilder.presetColors.get("red")))
@@ -303,11 +296,66 @@ public class CordPlanterBootstrap implements PluginBootstrap {
                                                             .append(Component.text(state ? "enabled" : "disabled").color(TextBuilder.presetColors.get(state ? "green" : "red")))
                                                             .append(Component.text(".").color(TextBuilder.presetColors.get("gray")))
                                             );
+                                            if (setting.equals("allow_granting_operator_status") && state) {
+                                                stack.getSource().getSender().sendMessage(
+                                                        Component.text()
+                                                                .append(Component.text("CordPlanter").color(TextBuilder.presetColors.get("red")).decoration(TextDecoration.BOLD, TextDecoration.State.TRUE))
+                                                                .append(Component.text(" | ").color(TextBuilder.presetColors.get("dark_gray")))
+                                                                .append(Component.text("!!! WARNING !!! Enabling this option grants workspaces the power to GRANT OPERATOR STATUS to any Player, etc. This can be used as a force-op exploit, even through harmless looking stuff like text replacement. Only enable this option if you really need it.").color(TextBuilder.presetColors.get("gray")))
+                                                                .append(Component.text("\nClick here to reset this setting.").hoverEvent(HoverEvent.showText(Component.text("RESET SETTING").color(TextBuilder.presetColors.get("red")).decoration(TextDecoration.BOLD, TextDecoration.State.TRUE))).color(TextBuilder.presetColors.get("red")).decoration(TextDecoration.BOLD, TextDecoration.State.TRUE).clickEvent(ClickEvent.runCommand("workspace settings reset allow_granting_operator_status")))
+                                                );
+                                                CordPlanter.LOGGER.warn("\n===========================================================================================================================================================\n\n!!! CRITICAL WARNING !!!\n\nCordPlanter was configured to grant workspaces the power to GRANT OPERATOR STATUS to any Player, etc. This can be used as a force-op exploit, even through harmless looking stuff like text replacement.\nOnly enable this option if you really need it.\nPlease run \"workspace settings reset allow_granting_operator_status\" to reset this option.\n\n===========================================================================================================================================================");
+                                            }
                                         }
                                         return Command.SINGLE_SUCCESS;
                                     }
                                     return -1;
-                                })))))
+                                })))).then(Commands.literal("reset").executes(command -> {
+                                    try {
+                                        refreshCurrentFormatSettings(true);
+                                    } catch (Exception e) {
+                                        throw new RuntimeException(e);
+                                    }
+                                    command.getSource().getSender().sendMessage(
+                                            Component.text()
+                                                    .append(Component.text("CordPlanter").color(TextBuilder.presetColors.get("red")).decoration(TextDecoration.BOLD, TextDecoration.State.TRUE))
+                                                    .append(Component.text(" | ").color(TextBuilder.presetColors.get("dark_gray")))
+                                                    .append(Component.text("Successfully reset the plugin settings.").color(TextBuilder.presetColors.get("gray")))
+                                    );
+                                    return Command.SINGLE_SUCCESS;
+                                }).then(Commands.argument("setting", StringArgumentType.string()).suggests((context, builder) -> {
+                                            for (String setting : settings.keySet()) {
+                                                builder.suggest(setting);
+                                            }
+                                            return builder.buildFuture();
+                                }).executes(command -> {
+                                    String setting = command.getArgument("setting", String.class);
+                                    if (this.settings.containsKey(setting)) {
+                                        try {
+                                            this.settings.put(setting, urlStuff().get(setting).getAsBoolean());
+                                        } catch (Exception e) {
+                                            throw new RuntimeException(e);
+                                        }
+                                        command.getSource().getSender().sendMessage(
+                                                Component.text()
+                                                        .append(Component.text("CordPlanter").color(TextBuilder.presetColors.get("red")).decoration(TextDecoration.BOLD, TextDecoration.State.TRUE))
+                                                        .append(Component.text(" | ").color(TextBuilder.presetColors.get("dark_gray")))
+                                                        .append(Component.text("Successfully reset the ").color(TextBuilder.presetColors.get("gray")))
+                                                        .append(Component.text(setting).color(TextBuilder.presetColors.get("red")))
+                                                        .append(Component.text(" setting.").color(TextBuilder.presetColors.get("gray")))
+                                        );
+                                        return Command.SINGLE_SUCCESS;
+                                    }
+                                    command.getSource().getSender().sendMessage(
+                                            Component.text()
+                                                    .append(Component.text("CordPlanter").color(TextBuilder.presetColors.get("red")).decoration(TextDecoration.BOLD, TextDecoration.State.TRUE))
+                                                    .append(Component.text(" | ").color(TextBuilder.presetColors.get("dark_gray")))
+                                                    .append(Component.text("Couldn't find the ").color(TextBuilder.presetColors.get("gray")))
+                                                    .append(Component.text(setting).color(TextBuilder.presetColors.get("red")))
+                                                    .append(Component.text(" setting.").color(TextBuilder.presetColors.get("gray")))
+                                    );
+                                    return -1;
+                                }))))
                                 .build()
                 );
                 commandContext.registrar().register(Commands.literal("testingtesting").executes(stack -> {
@@ -413,6 +461,30 @@ public class CordPlanterBootstrap implements PluginBootstrap {
             }
         }
         return node.build();
+    }
+
+    private void refreshCurrentFormatSettings(boolean forceReload) throws Exception {
+        if (data.get("settings").getAsJsonObject().isEmpty() || forceReload) {
+            this.data.add("settings", this.urlStuff());
+        }
+        for (Entry<String, JsonElement> entry : this.data.getAsJsonObject("settings").entrySet()) {
+            this.settings.put(entry.getKey(), entry.getValue().getAsBoolean());
+        }
+        if (!this.settings.get("require_current_format") && !this.data.get("disable_format_warning").getAsBoolean()) {
+            CordPlanter.LOGGER.warn("\n===========================================================================================================================================================\n\n!!! WARNING !!!\n\nCordPlanter is configured to not require workspaces to use the current format. This could lead to the incorrect reading of definitions or missing features.\nFor the integrity of the plugin, I would enable this option.\nTo disable this warning, change \"disable_format_warning\" to true in the data.json config file.\n    - Sheepearrr, owner of CordPlanter\n\n===========================================================================================================================================================");
+        }
+    }
+
+    private JsonObject urlStuff() throws Exception {
+        URL defaultSettingsUrl = new URL("https://raw.githubusercontent.com/Sheepearrrrrrrrrr/Data/refs/heads/main/cordplanter/default_settings/" + currentFormat + ".json");
+        HttpURLConnection conn = (HttpURLConnection) defaultSettingsUrl.openConnection();
+        conn.setRequestMethod("GET");
+        conn.setDoOutput(true);
+        BufferedReader rd = new BufferedReader(new InputStreamReader(conn.getInputStream()));
+        JsonObject toReturn = new Gson().fromJson(rd, JsonObject.class);
+        rd.close();
+        conn.disconnect();
+        return toReturn;
     }
 
     @Override

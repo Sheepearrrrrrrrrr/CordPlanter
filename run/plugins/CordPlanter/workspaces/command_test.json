@@ -59,9 +59,9 @@
                   "color": "gold"
                 }
               ],
-              "progress": 78,
-              "color": "red",
-              "overlay": "progress"
+              "progress": 16.6666666667,
+              "color": "pink",
+              "overlay": "notched_6"
             },
             {
               "base": true,

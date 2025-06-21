@@ -40,7 +40,7 @@ public class Audience implements BasicMethodContainer {
 
     private BossBar bossbarFromJsonObject(JsonObject obj) {
         final Component name = TextBuilder.getComponentFromJsonElement(obj.get("name"), this.context, false);
-        final float progress = Math.clamp(((float) obj.get("progress").getAsInt()) / 100.0F, 0.0F, 1.0F);
+        final float progress = Math.clamp(obj.get("progress").getAsFloat() / 100.0F, 0.0F, 1.0F);
         final BossBar.Color color = BossBar.Color.NAMES.value(obj.get("color").getAsString());
         final BossBar.Overlay overlay = BossBar.Overlay.NAMES.value(obj.get("overlay").getAsString());
         assert color != null && overlay != null;
@@ -88,8 +88,8 @@ public class Audience implements BasicMethodContainer {
             for (JsonElement element : modifications) {
                 JsonObject obj = element.getAsJsonObject();
                 switch (obj.get("type").getAsString()) {
-                    case "set_progress" -> bar.progress(Math.clamp(((float) obj.get("progress").getAsInt()) / 100.0F, 0.0F, 1.0F));
-                    case "add_progress" -> bar.progress(Math.clamp(bar.progress() + ((float) obj.get("amount").getAsInt()) / 100.0F, 0.0F, 1.0F));
+                    case "set_progress" -> bar.progress(Math.clamp(obj.get("progress").getAsFloat() / 100.0F, 0.0F, 1.0F));
+                    case "add_progress" -> bar.progress(Math.clamp(bar.progress() + obj.get("amount").getAsFloat() / 100.0F, 0.0F, 1.0F));
                     case "change_color" -> bar.color(Objects.requireNonNull(BossBar.Color.NAMES.value(obj.get("color").getAsString())));
                     case "change_overlay" -> bar.overlay(Objects.requireNonNull(BossBar.Overlay.NAMES.value(obj.get("overlay").getAsString())));
                     case "change_name" -> bar.name(TextBuilder.getComponentFromJsonElement(obj.get("name"), this.context, false));
