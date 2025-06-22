@@ -5,6 +5,7 @@ import com.google.gson.JsonArray;
 import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 import com.mojang.brigadier.Command;
+import com.mojang.brigadier.StringReader;
 import com.mojang.brigadier.arguments.*;
 import com.mojang.brigadier.builder.ArgumentBuilder;
 import com.mojang.brigadier.builder.LiteralArgumentBuilder;
@@ -16,9 +17,14 @@ import eu.sheepearrr.cordplanter.util.EnchantmentBuilder;
 import eu.sheepearrr.cordplanter.util.MethodContext;
 import eu.sheepearrr.cordplanter.util.TextBuilder;
 import eu.sheepearrr.cordplanter.util.WorkspaceProperties;
+import fr.mrmicky.fastboard.FastBoardBase;
+import fr.mrmicky.fastboard.adventure.FastBoard;
 import io.papermc.paper.command.brigadier.CommandSourceStack;
 import io.papermc.paper.command.brigadier.Commands;
 import io.papermc.paper.command.brigadier.argument.ArgumentTypes;
+import io.papermc.paper.command.brigadier.argument.resolvers.PlayerProfileListResolver;
+import io.papermc.paper.command.brigadier.argument.resolvers.selector.EntitySelectorArgumentResolver;
+import io.papermc.paper.command.brigadier.argument.resolvers.selector.PlayerSelectorArgumentResolver;
 import io.papermc.paper.plugin.bootstrap.BootstrapContext;
 import io.papermc.paper.plugin.bootstrap.PluginBootstrap;
 import io.papermc.paper.plugin.bootstrap.PluginProviderContext;
@@ -34,15 +40,19 @@ import net.kyori.adventure.text.event.ClickEvent;
 import net.kyori.adventure.text.event.HoverEvent;
 import net.kyori.adventure.text.format.TextDecoration;
 import net.kyori.adventure.title.Title;
+import org.bukkit.World;
+import org.bukkit.entity.Entity;
 import org.bukkit.inventory.ItemType;
 import org.bukkit.plugin.java.JavaPlugin;
 import org.checkerframework.checker.units.qual.C;
+import org.jetbrains.annotations.Nullable;
 
 import java.io.BufferedReader;
 import java.io.File;
 import java.io.FileReader;
 import java.io.InputStreamReader;
 import java.net.HttpURLConnection;
+import java.net.URI;
 import java.net.URL;
 import java.util.*;
 import java.util.Map.Entry;
@@ -73,6 +83,23 @@ public class CordPlanterBootstrap implements PluginBootstrap {
             Map.entry("player", ArgumentTypes.player()),
             Map.entry("players", ArgumentTypes.players()),
             Map.entry("player_profiles", ArgumentTypes.playerProfiles())
+    );
+
+    public static final Map<String, Class<?>> argumentTypeOutputs = Map.ofEntries(
+            Map.entry("string", String.class),
+            Map.entry("word", String.class),
+            Map.entry("greedy_string", String.class),
+            Map.entry("integer", Integer.class),
+            Map.entry("float", Float.class),
+            Map.entry("double", Double.class),
+            Map.entry("uuid", UUID.class),
+            Map.entry("world", World.class),
+            Map.entry("entity", Entity.class),
+            Map.entry("entities", EntitySelectorArgumentResolver.class),
+            Map.entry("time", Integer.class),
+            Map.entry("player", PlayerSelectorArgumentResolver.class),
+            Map.entry("players", PlayerSelectorArgumentResolver.class),
+            Map.entry("player_profiles", PlayerProfileListResolver.class)
     );
 
     @Override
@@ -304,7 +331,7 @@ public class CordPlanterBootstrap implements PluginBootstrap {
                                                                 .append(Component.text("!!! WARNING !!! Enabling this option grants workspaces the power to GRANT OPERATOR STATUS to any Player, etc. This can be used as a force-op exploit, even through harmless looking stuff like text replacement. Only enable this option if you really need it.").color(TextBuilder.presetColors.get("gray")))
                                                                 .append(Component.text("\nClick here to reset this setting.").hoverEvent(HoverEvent.showText(Component.text("RESET SETTING").color(TextBuilder.presetColors.get("red")).decoration(TextDecoration.BOLD, TextDecoration.State.TRUE))).color(TextBuilder.presetColors.get("red")).decoration(TextDecoration.BOLD, TextDecoration.State.TRUE).clickEvent(ClickEvent.runCommand("workspace settings reset allow_granting_operator_status")))
                                                 );
-                                                CordPlanter.LOGGER.warn("\n===========================================================================================================================================================\n\n!!! CRITICAL WARNING !!!\n\nCordPlanter was configured to grant workspaces the power to GRANT OPERATOR STATUS to any Player, etc. This can be used as a force-op exploit, even through harmless looking stuff like text replacement.\nOnly enable this option if you really need it.\nPlease run \"workspace settings reset allow_granting_operator_status\" to reset this option.\n\n===========================================================================================================================================================");
+                                                CordPlanter.LOGGER.warn("\n===========================================================================================================================================================\n\n!!! CRITICAL WARNING !!!\n\nCordPlanter was configured to grant workspaces the power to grant/take away OPERATOR STATUS to/from any Player, etc. This can be used as a force-op exploit, even through harmless looking actions like text replacement.\nOnly enable this option if you really need it.\nPlease run \"workspace settings reset allow_granting_operator_status\" to reset this option.\n\n===========================================================================================================================================================");
                                             }
                                         }
                                         return Command.SINGLE_SUCCESS;
@@ -375,28 +402,44 @@ public class CordPlanterBootstrap implements PluginBootstrap {
                                 Map<String, Object> props = new HashMap<>(Map.ofEntries(
                                         Map.entry("sender", stack.getSender()),
                                         Map.entry("executer", stack.getExecutor()),
-                                        Map.entry("location", stack.getLocation())
+                                        Map.entry("source_stack", stack)
                                 ));
                                 MethodContext context = new MethodContext(entry.getValue().getAsJsonArray("requires").asList(), props);
                                 return context.requires(stack);
                             });
                         }
                         if (entry.getValue().has("executes")) {
-                            node.executes(stack -> {
+                            node.executes(commandContextStack -> {
                                 Map<String, Object> props = new HashMap<>(Map.ofEntries(
-                                        Map.entry("sender", stack.getSource().getSender()),
-                                        Map.entry("executer", stack.getSource().getExecutor())
+                                        Map.entry("sender", commandContextStack.getSource().getSender()),
+                                        Map.entry("executer", commandContextStack.getSource().getExecutor()),
+                                        Map.entry("source_stack", commandContextStack.getSource()),
+                                        Map.entry("{<context", commandContextStack)
                                 ));
                                 MethodContext context = new MethodContext(entry.getValue().getAsJsonArray("executes").asList(), props);
-                                return context.executes(stack);
+                                return context.executes(commandContextStack);
                             });
                         }
                         if (entry.getValue().has("then")) {
                             for (JsonElement then : entry.getValue().get("then").getAsJsonArray()) {
-                                node.then(then(then.getAsJsonObject()));
+                                node.then(then(then.getAsJsonObject(), new HashMap<>()));
                             }
                         }
-                        commandContext.registrar().register(node.build());
+                        if (entry.getValue().has("aliases")) {
+                            List<String> aliases = new ArrayList<>();
+                            for (JsonElement element : entry.getValue().getAsJsonArray("aliases")) {
+                                aliases.add(element.getAsString());
+                            }
+                            if (entry.getValue().has("description")) {
+                                commandContext.registrar().register(node.build(), entry.getValue().get("description").getAsString(), aliases);
+                            } else {
+                                commandContext.registrar().register(node.build(), aliases);
+                            }
+                        } else if (entry.getValue().has("description")) {
+                            commandContext.registrar().register(node.build(), entry.getValue().get("description").getAsString());
+                        } else {
+                            commandContext.registrar().register(node.build());
+                        }
                     }
                 }
             });
@@ -432,32 +475,38 @@ public class CordPlanterBootstrap implements PluginBootstrap {
         }
     }
 
-    private CommandNode<CommandSourceStack> then(JsonObject obj) {
+    private CommandNode<CommandSourceStack> then(JsonObject obj, Map<String, String> prevArgs) {
         var node = obj.get("type").getAsString().equals("argument") ? Commands.argument(obj.get("name").getAsString(), argumentTypes.get(obj.get("argument_type").getAsString())) : Commands.literal(obj.get("name").getAsString());
-        if (obj.has("requires")) {
+        if (node instanceof RequiredArgumentBuilder<?, ?> builder) {
+            prevArgs.put(builder.getName(), obj.get("argument_type").getAsString());
+        }
+        if (obj.has("requires") && obj.get("requires").isJsonArray()) {
             node.requires(stack -> {
                 Map<String, Object> props = new HashMap<>(Map.ofEntries(
                         Map.entry("sender", stack.getSender()),
-                        Map.entry("executer", stack.getExecutor()),
-                        Map.entry("location", stack.getLocation())
+                        Map.entry("executor", stack.getExecutor()),
+                        Map.entry("source_stack", stack)
                 ));
                 MethodContext context = new MethodContext(obj.getAsJsonArray("requires").asList(), props);
                 return context.requires(stack);
             });
         }
-        if (obj.has("executes")) {
+        if (obj.has("executes") && obj.get("executes").isJsonArray()) {
             node.executes(stack -> {
                 Map<String, Object> props = new HashMap<>(Map.ofEntries(
                         Map.entry("sender", stack.getSource().getSender()),
-                        Map.entry("executer", stack.getSource().getExecutor())
+                        Map.entry("executor", stack.getSource().getExecutor()),
+                        Map.entry("{<arguments", prevArgs),
+                        Map.entry("{<context", stack),
+                        Map.entry("source_stack", stack.getSource())
                 ));
                 MethodContext context = new MethodContext(obj.getAsJsonArray("executes").asList(), props);
                 return context.executes(stack);
             });
         }
-        if (obj.has("then")) {
+        if (obj.has("then") && obj.get("then").isJsonArray()) {
             for (JsonElement then : obj.get("then").getAsJsonArray()) {
-                node.then(then(then.getAsJsonObject()));
+                node.then(then(then.getAsJsonObject(), prevArgs));
             }
         }
         return node.build();
@@ -476,7 +525,7 @@ public class CordPlanterBootstrap implements PluginBootstrap {
     }
 
     private JsonObject urlStuff() throws Exception {
-        URL defaultSettingsUrl = new URL("https://raw.githubusercontent.com/Sheepearrrrrrrrrr/Data/refs/heads/main/cordplanter/default_settings/" + currentFormat + ".json");
+        URL defaultSettingsUrl = new URI("https://raw.githubusercontent.com/Sheepearrrrrrrrrr/Data/refs/heads/main/cordplanter/default_settings/" + currentFormat + ".json").toURL();
         HttpURLConnection conn = (HttpURLConnection) defaultSettingsUrl.openConnection();
         conn.setRequestMethod("GET");
         conn.setDoOutput(true);

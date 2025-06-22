@@ -4,9 +4,14 @@ import com.google.gson.JsonArray;
 import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 import com.mojang.brigadier.Command;
+import com.mojang.brigadier.StringReader;
+import com.mojang.brigadier.arguments.ArgumentType;
+import com.mojang.brigadier.arguments.StringArgumentType;
 import com.mojang.brigadier.context.CommandContext;
+import eu.sheepearrr.cordplanter.CordPlanter;
 import eu.sheepearrr.cordplanter.CordPlanterBootstrap;
 import io.papermc.paper.command.brigadier.CommandSourceStack;
+import io.papermc.paper.command.brigadier.argument.ArgumentTypes;
 import org.bukkit.Bukkit;
 import org.bukkit.Location;
 import org.bukkit.command.CommandSender;
@@ -31,7 +36,7 @@ public class MethodContext {
     }
 
     public boolean setVariableTo(String name, Object value) {
-        this.props.put(name, value);
+        this.props.put(name.startsWith("{<") ? name.substring(2) : name, value);
         return true;
     }
 
@@ -48,20 +53,37 @@ public class MethodContext {
         return CordPlanterBootstrap.INSTANCE.internalVariables.get(name);
     }
 
+    public CommandContext<CommandSourceStack> getCommandContext() {
+        return (CommandContext<CommandSourceStack>) this.props.get("{<context");
+    }
+
+    public Object getArgument(String name) {
+        return this.getCommandContext().getArgument(name, CordPlanterBootstrap.argumentTypeOutputs.get(((Map<String, String>) this.props.get("{<arguments")).get(name)));
+    }
+
     public boolean requires(CommandSourceStack stack) {
         for (JsonElement element : commands) {
             JsonObject obj = element.getAsJsonObject();
             switch (obj.get("type").getAsString()) {
                 case "return" -> {
-                    return (boolean) getExpression(obj.get("value").getAsJsonObject()).apply(obj.get("value").getAsJsonObject().getAsJsonArray("args"));
+                    return (boolean) getExpression(obj.get("value").getAsJsonObject()).apply(obj.get("value").getAsJsonObject().getAsJsonArray("arguments"));
                 }
-                case "method" -> {
-                    getExpression(obj).apply(obj.getAsJsonArray("args"));
-                }
-                default -> {}
+                case "method" -> getExpression(obj).apply(obj.getAsJsonArray("arguments"));
             }
         }
         return true;
+    }
+
+    private void schedule(JsonObject obj) {
+        Bukkit.getScheduler().runTaskLater(CordPlanter.INSTANCE, () -> {
+            for (JsonElement element : obj.get("commands").getAsJsonArray()) {
+                JsonObject commandObj = element.getAsJsonObject();
+                switch (commandObj.get("type").getAsString()) {
+                    case "method" -> getExpression(commandObj).apply(commandObj.getAsJsonArray("arguments"));
+                    case "schedule" -> schedule(commandObj);
+                }
+            }
+        }, obj.get("delay").getAsLong());
     }
 
     public int executes(CommandContext<CommandSourceStack> context) {
@@ -69,17 +91,17 @@ public class MethodContext {
             JsonObject obj = element.getAsJsonObject();
             switch (obj.get("type").getAsString()) {
                 case "return" -> {
-                    return (int) getExpression(obj.get("value").getAsJsonObject()).apply(obj.get("value").getAsJsonObject().getAsJsonArray("args"));
+                    return (int) getExpression(obj.get("value").getAsJsonObject()).apply(obj.get("value").getAsJsonObject().getAsJsonArray("arguments"));
                 }
-                case "method" -> getExpression(obj).apply(obj.getAsJsonArray("args"));
-                default -> {}
+                case "method" -> getExpression(obj).apply(obj.getAsJsonArray("arguments"));
+                case "schedule" -> schedule(obj);
             }
         }
         return Command.SINGLE_SUCCESS;
     }
 
     public Function<JsonArray, Object> getExpression(JsonObject obj) {
-        if (props.get(obj.get("from").getAsString()) != null) {
+        if (obj.has("from") && props.get(obj.get("from").getAsString()) != null) {
             return switch (props.get(obj.get("from").getAsString())) {
                 case Player player -> new eu.sheepearrr.cordplanter.util.methodcontainer.Player(player, this).getExpression(obj);
                 case CommandSender sender -> new eu.sheepearrr.cordplanter.util.methodcontainer.CommandSender(sender, this).getExpression(obj);
@@ -87,11 +109,12 @@ public class MethodContext {
             };
         }
         if (obj.has("method")) {
-            return switch (obj.get("method").toString()) {
+            return switch (obj.get("method").getAsString()) {
                 case "get_variable" -> (args -> this.getVariable(args.get(0).getAsString()));
                 case "get_internal_variable" -> (args -> this.getInternalVariable(args.get(0).getAsString()));
                 case "set_variable" -> (args -> this.setVariableTo(args.get(0).getAsString(), args.get(1)));
                 case "set_internal_variable" -> (args -> this.setInternalVariableTo(args.get(0).getAsString(), args.get(1)));
+                case "get_argument" -> (args -> this.getArgument(args.get(0).getAsString()));
                 default -> null;
             };
         }

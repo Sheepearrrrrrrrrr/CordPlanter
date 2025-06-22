@@ -22,6 +22,7 @@ public class Player extends CommandSender {
     public Function<JsonArray, Object> getExpression(JsonObject obj) {
         if (obj.has("method")) {
             return switch (obj.get("method").getAsString()) {
+                case "perform_command" -> this::performCommand;
                 default -> super.getExpression(obj);
             };
         }
@@ -36,5 +37,9 @@ public class Player extends CommandSender {
     @Override
     public String name(JsonArray args) {
         return this.player.getName();
+    }
+
+    public boolean performCommand(JsonArray args) {
+        return this.player.performCommand(TextBuilder.textReplacement(new JsonObject(), args.get(0).getAsString(), this.context));
     }
 }

@@ -15,7 +15,7 @@
             "type": "method",
             "from": "sender",
             "method": "is_op",
-            "args": [
+            "arguments": [
             ]
           }
         }
@@ -25,7 +25,7 @@
           "type": "method",
           "from": "sender",
           "method": "send_message",
-          "args": [
+          "arguments": [
             [
               {
                 "text": "Hello ",
@@ -50,7 +50,7 @@
           "type": "method",
           "from": "sender",
           "method": "show_bossbar",
-          "args": [
+          "arguments": [
             {
               "name": [
                 "",
@@ -81,7 +81,7 @@
           "type": "method",
           "from": "sender",
           "method": "hide_bossbar",
-          "args": [
+          "arguments": [
             {
               "type": "internal",
               "name": "test_bossbar"
@@ -99,7 +99,7 @@
           "type": "method",
           "from": "sender",
           "method": "modify_bossbar",
-          "args": [
+          "arguments": [
             {
               "type": "internal",
               "name": "test_bossbar"
@@ -142,7 +142,21 @@
             {
               "type": "argument",
               "argument_type": "string",
-              "name": "nest2"
+              "name": "nest2",
+              "executes": [
+                {
+                  "type": "method",
+                  "from": "sender",
+                  "method": "send_message",
+                  "arguments": [
+                    [
+                      {
+                        "text": "This is what you said: $#get_argument[\"nest2\"]#$"
+                      }
+                    ]
+                  ]
+                }
+              ]
             }
           ]
         }

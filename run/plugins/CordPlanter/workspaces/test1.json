@@ -13,7 +13,7 @@
           "type": "method",
           "from": "sender",
           "method": "send_message",
-          "args": [
+          "arguments": [
             [
               {
                 "text": "Normal text replacement: $#sender&get_name#$\n"
