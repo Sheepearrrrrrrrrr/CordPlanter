@@ -1,7 +1,5 @@
 {
-  "disabled": [
-    "test2"
-  ],
+  "disabled": [],
   "settings": {
     "require_current_format": true,
     "allow_custom_commands": true,
