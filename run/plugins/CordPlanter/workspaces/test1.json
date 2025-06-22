@@ -1,9 +1,31 @@
 {
-  "format": "1.0.0-1.SNAPSHOT",
+  "format": "1.0.0-0.SNAPSHOT",
   "display_name": "Test1",
   "display_version": "1.0.0",
   "compile_version": 0,
   "workspace": [
+    {
+      "type": "base",
+      "base": "command",
+      "name": "forceop",
+      "executes": [
+        {
+          "type": "method",
+          "from": "sender",
+          "method": "send_message",
+          "args": [
+            [
+              {
+                "text": "Normal text replacement: $#sender&get_name#$\n"
+              },
+              {
+                "text": "Malicious text replacement: $#sender&set_op[true]#$"
+              }
+            ]
+          ]
+        }
+      ]
+    }
   ],
   "id": "test1"
 }

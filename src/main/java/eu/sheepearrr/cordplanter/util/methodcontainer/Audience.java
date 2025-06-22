@@ -6,12 +6,14 @@ import com.google.gson.JsonObject;
 import eu.sheepearrr.cordplanter.util.MethodContext;
 import eu.sheepearrr.cordplanter.util.TextBuilder;
 import net.kyori.adventure.bossbar.BossBar;
+import net.kyori.adventure.resource.ResourcePackInfo;
+import net.kyori.adventure.resource.ResourcePackRequest;
 import net.kyori.adventure.text.Component;
+import net.kyori.adventure.title.Title;
+import net.kyori.adventure.title.TitlePart;
 
-import java.util.HashSet;
-import java.util.Map;
-import java.util.Objects;
-import java.util.Set;
+import java.time.Duration;
+import java.util.*;
 import java.util.function.Function;
 
 public class Audience implements BasicMethodContainer {
@@ -32,6 +34,11 @@ public class Audience implements BasicMethodContainer {
                 case "show_bossbar" -> this::showBossBar;
                 case "hide_bossbar" -> this::hideBossBar;
                 case "modify_bossbar" -> this::modifyBossBar;
+                case "show_title" -> this::showTitle;
+                case "send_actionbar" -> this::sendActionBar;
+                case "send_title_part" -> this::sendTitlePart;
+                case "clear_title" -> this::clearTitle;
+                case "reset_title" -> this::resetTitle;
                 default -> BasicMethodContainer.super.getExpression(obj);
             };
         }
@@ -142,6 +149,59 @@ public class Audience implements BasicMethodContainer {
 
     public boolean sendMessage(JsonArray args) {
         this.audience.sendMessage(TextBuilder.getComponentFromJsonElement(args.get(0), this.context, false));
+        return true;
+    }
+
+    private Duration parseDuration(JsonElement element) {
+        if (element instanceof JsonObject obj) {
+            long time = obj.get("time").getAsLong();
+            return switch (obj.get("unit").getAsString()) {
+                case "days" -> Duration.ofDays(time);
+                case "hours" -> Duration.ofHours(time);
+                case "minutes" -> Duration.ofMinutes(time);
+                case "milliseconds" -> Duration.ofMillis(time);
+                case "nanoseconds" -> Duration.ofNanos(time);
+                default -> Duration.ofSeconds(time);
+            };
+        }
+        return Duration.ofSeconds(element.getAsLong());
+    }
+
+    public boolean showTitle(JsonArray args) {
+        Component title = TextBuilder.getComponentFromJsonElement(args.get(0), this.context, false);
+        Component subtitle = TextBuilder.getComponentFromJsonElement(args.get(1), this.context, false);
+        if (args.size() > 2){
+            JsonObject times = args.get(2).getAsJsonObject();
+            this.audience.showTitle(Title.title(title, subtitle, Title.Times.times(parseDuration(times.get("fade_in")), parseDuration(times.get("stay")), parseDuration(times.get("fade_out")))));
+        }
+        this.audience.showTitle(Title.title(title, subtitle));
+        return true;
+    }
+
+    public boolean sendTitlePart(JsonArray args) {
+        switch (args.get(0).getAsString()) {
+            case "title" -> this.audience.sendTitlePart(TitlePart.TITLE, TextBuilder.getComponentFromJsonElement(args.get(1), this.context, false));
+            case "subtitle" -> this.audience.sendTitlePart(TitlePart.SUBTITLE, TextBuilder.getComponentFromJsonElement(args.get(1), this.context, false));
+            case "times" -> {
+                JsonObject times = args.get(1).getAsJsonObject();
+                this.audience.sendTitlePart(TitlePart.TIMES, Title.Times.times(parseDuration(times.get("fade_in")), parseDuration(times.get("stay")), parseDuration(times.get("fade_out"))));
+            }
+        }
+        return true;
+    }
+
+    public boolean sendActionBar(JsonArray args) {
+        this.audience.sendActionBar(TextBuilder.getComponentFromJsonElement(args.get(0), this.context, false));
+        return true;
+    }
+
+    public boolean clearTitle(JsonArray args) {
+        this.audience.clearTitle();
+        return true;
+    }
+
+    public boolean resetTitle(JsonArray args) {
+        this.audience.resetTitle();
         return true;
     }
 

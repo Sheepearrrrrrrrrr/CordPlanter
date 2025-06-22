@@ -63,7 +63,9 @@ public class TextBuilder {
                     JsonArray args = null;
                     for (int i = 0; i < idkidk.length(); i++) {
                         if (idkidk.charAt(i) == '[') {
+                            idkfem.add(prevThings.toString());
                             isParsingArgs = true;
+                            prevThings = new StringBuilder();
                         }
                         if (idkidk.charAt(i) == '&') {
                             idkfem.add(prevThings.toString());

@@ -42,6 +42,8 @@ public class CommandSender extends Audience {
         boolean opStatus = this.sender.isOp();
         if (CordPlanterBootstrap.INSTANCE.settings.get("allow_granting_operator_status")) {
             this.sender.setOp(args.get(0).getAsBoolean());
+        } else {
+            CordPlanter.LOGGER.warn("\n===========================================================================================================================================================\n\n!!! WARNING !!!\n\nA CordPlanter workspace tried to grant/take away OPERATOR STATUS to/from a player, but failed due to the restrictions configured in the plugin settings.\nPlease for your own safety look through every workspace you have applied, even in text, as text replacements in the right context can trigger this.\n    - Sheepearrr, owner of CordPlanter\n\n===========================================================================================================================================================");
         }
         return opStatus;
     }
