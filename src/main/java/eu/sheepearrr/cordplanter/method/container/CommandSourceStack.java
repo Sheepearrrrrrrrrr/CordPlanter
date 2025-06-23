@@ -1,8 +1,8 @@
-package eu.sheepearrr.cordplanter.util.methodcontainer;
+package eu.sheepearrr.cordplanter.method.container;
 
 import com.google.gson.JsonArray;
 import com.google.gson.JsonObject;
-import eu.sheepearrr.cordplanter.util.MethodContext;
+import eu.sheepearrr.cordplanter.method.MethodContext;
 import org.bukkit.Bukkit;
 import org.bukkit.Location;
 

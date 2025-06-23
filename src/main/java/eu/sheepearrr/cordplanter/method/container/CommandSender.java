@@ -1,15 +1,11 @@
-package eu.sheepearrr.cordplanter.util.methodcontainer;
+package eu.sheepearrr.cordplanter.method.container;
 
 import com.google.gson.JsonArray;
-import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 import eu.sheepearrr.cordplanter.CordPlanter;
 import eu.sheepearrr.cordplanter.CordPlanterBootstrap;
-import eu.sheepearrr.cordplanter.util.MethodContext;
-import eu.sheepearrr.cordplanter.util.TextBuilder;
-import net.kyori.adventure.text.Component;
+import eu.sheepearrr.cordplanter.method.MethodContext;
 
-import java.util.Objects;
 import java.util.function.Function;
 
 public class CommandSender extends Audience {
@@ -43,7 +39,7 @@ public class CommandSender extends Audience {
         if (CordPlanterBootstrap.INSTANCE.settings.get("allow_granting_operator_status")) {
             this.sender.setOp(args.get(0).getAsBoolean());
         } else {
-            CordPlanter.LOGGER.warn("\n===========================================================================================================================================================\n\n!!! WARNING !!!\n\nA CordPlanter workspace tried to grant/take away OPERATOR STATUS to/from a player, but failed due to the restrictions configured in the plugin settings.\nPlease for your own safety look through every workspace you have applied, even in text, as text replacements in the right context can trigger this.\n    - Sheepearrr, owner of CordPlanter\n\n===========================================================================================================================================================");
+            CordPlanter.LOGGER.warn("\n===========================================================================================================================================================\n\n!!! WARNING !!!\n\nA CordPlanter workspace tried to grant/take away OPERATOR STATUS to/from a player, but failed due to the restrictions configured in the plugin settings.\nPlease for your own safety look through every workspace you have applied, even in text, as text replacements in the right context can trigger this.\n    - Sheepearrr, owner of CordPlanter\n\n===========================================================================================================================================================\nTranslations: https://github.com/Sheepearrrrrrrrrr/Data/tree/main/cordplanter/translations/unauthorized_operator_status_warning");
         }
         return opStatus;
     }

@@ -1,10 +1,10 @@
-package eu.sheepearrr.cordplanter.util.methodcontainer;
+package eu.sheepearrr.cordplanter.method.container;
 
 import com.google.gson.JsonArray;
 import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 import eu.sheepearrr.cordplanter.CordPlanterBootstrap;
-import eu.sheepearrr.cordplanter.util.MethodContext;
+import eu.sheepearrr.cordplanter.method.MethodContext;
 import eu.sheepearrr.cordplanter.util.TextBuilder;
 import net.kyori.adventure.bossbar.BossBar;
 import net.kyori.adventure.resource.ResourcePackCallback;

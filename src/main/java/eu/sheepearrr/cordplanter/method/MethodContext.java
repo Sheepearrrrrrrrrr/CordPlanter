@@ -1,27 +1,20 @@
-package eu.sheepearrr.cordplanter.util;
+package eu.sheepearrr.cordplanter.method;
 
 import com.google.gson.JsonArray;
 import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 import com.mojang.brigadier.Command;
-import com.mojang.brigadier.StringReader;
-import com.mojang.brigadier.arguments.ArgumentType;
-import com.mojang.brigadier.arguments.StringArgumentType;
 import com.mojang.brigadier.context.CommandContext;
 import eu.sheepearrr.cordplanter.CordPlanter;
 import eu.sheepearrr.cordplanter.CordPlanterBootstrap;
+import eu.sheepearrr.cordplanter.util.GsonUtils;
 import io.papermc.paper.command.brigadier.CommandSourceStack;
-import io.papermc.paper.command.brigadier.argument.ArgumentTypes;
 import org.bukkit.Bukkit;
-import org.bukkit.Location;
 import org.bukkit.command.CommandSender;
-import org.bukkit.entity.Entity;
 import org.bukkit.entity.Player;
-import org.jetbrains.annotations.Nullable;
 
 import java.util.*;
 import java.util.function.Function;
-import java.util.function.Predicate;
 
 public class MethodContext {
     public Map<String, Object> props = new HashMap<>();
@@ -67,7 +60,8 @@ public class MethodContext {
                 case "return" -> {
                     return (boolean) getExpression(obj.get("value").getAsJsonObject()).apply(obj.get("value").getAsJsonObject().getAsJsonArray("arguments"));
                 }
-                case "method" -> getExpression(obj).apply(obj.getAsJsonArray("arguments"));
+                case "condition" -> condition(obj);
+                case "method" -> getExpression(obj).apply(obj.has("arguments") && obj.get("arguments").isJsonArray() ? obj.getAsJsonArray("arguments") : new JsonArray());
             }
             currentLine++;
         }
@@ -79,11 +73,34 @@ public class MethodContext {
             for (JsonElement element : obj.get("commands").getAsJsonArray()) {
                 JsonObject commandObj = element.getAsJsonObject();
                 switch (commandObj.get("type").getAsString()) {
-                    case "method" -> getExpression(commandObj).apply(commandObj.getAsJsonArray("arguments"));
+                    case "method" -> getExpression(commandObj).apply(commandObj.has("arguments") && commandObj.get("arguments").isJsonArray() ? commandObj.getAsJsonArray("arguments") : new JsonArray());
                     case "schedule" -> schedule(commandObj);
+                    case "condition" -> condition(commandObj);
                 }
             }
         }, obj.get("delay").getAsLong());
+    }
+
+    private void condition(JsonObject object) {
+        if ((boolean) this.getExpression(object.get("condition").getAsJsonObject()).apply(object.get("condition").getAsJsonObject().get("arguments").getAsJsonArray())) {
+            for (JsonElement element : object.get("then").getAsJsonArray()) {
+                JsonObject commandObj = element.getAsJsonObject();
+                switch (commandObj.get("type").getAsString()) {
+                    case "method" -> getExpression(commandObj).apply(commandObj.has("arguments") && commandObj.get("arguments").isJsonArray() ? commandObj.getAsJsonArray("arguments") : new JsonArray());
+                    case "schedule" -> schedule(commandObj);
+                    case "condition" -> condition(commandObj);
+                }
+            }
+        } else if (object.has("else")) {
+            for (JsonElement element : object.get("else").getAsJsonArray()) {
+                JsonObject commandObj = element.getAsJsonObject();
+                switch (commandObj.get("type").getAsString()) {
+                    case "method" -> getExpression(commandObj).apply(commandObj.has("arguments") && commandObj.get("arguments").isJsonArray() ? commandObj.getAsJsonArray("arguments") : new JsonArray());
+                    case "schedule" -> schedule(commandObj);
+                    case "condition" -> condition(commandObj);
+                }
+            }
+        }
     }
 
     public int executes(CommandContext<CommandSourceStack> context) {
@@ -94,8 +111,9 @@ public class MethodContext {
                 case "return" -> {
                     return (int) getExpression(obj.get("value").getAsJsonObject()).apply(obj.get("value").getAsJsonObject().getAsJsonArray("arguments"));
                 }
-                case "method" -> getExpression(obj).apply(obj.getAsJsonArray("arguments"));
+                case "method" -> getExpression(obj).apply(obj.has("arguments") && obj.get("arguments").isJsonArray() ? obj.getAsJsonArray("arguments") : new JsonArray());
                 case "schedule" -> schedule(obj);
+                case "condition" -> condition(obj);
             }
             currentLine++;
         }
@@ -107,8 +125,9 @@ public class MethodContext {
         for (JsonElement element : commands) {
             JsonObject obj = element.getAsJsonObject();
             switch (obj.get("type").getAsString()) {
-                case "method" -> getExpression(obj).apply(obj.getAsJsonArray("arguments"));
+                case "method" -> getExpression(obj).apply(obj.has("arguments") && obj.get("arguments").isJsonArray() ? obj.getAsJsonArray("arguments") : new JsonArray());
                 case "schedule" -> schedule(obj);
+                case "condition" -> condition(obj);
             }
             currentLine++;
         }
@@ -117,8 +136,8 @@ public class MethodContext {
     public Function<JsonArray, Object> getExpression(JsonObject obj) {
         if (obj.has("from") && props.get(obj.get("from").getAsString()) != null) {
             return switch (props.get(obj.get("from").getAsString())) {
-                case Player player -> new eu.sheepearrr.cordplanter.util.methodcontainer.Player(player, this).getExpression(obj);
-                case CommandSender sender -> new eu.sheepearrr.cordplanter.util.methodcontainer.CommandSender(sender, this).getExpression(obj);
+                case Player player -> new eu.sheepearrr.cordplanter.method.container.Player(player, this).getExpression(obj);
+                case CommandSender sender -> new eu.sheepearrr.cordplanter.method.container.CommandSender(sender, this).getExpression(obj);
                 default -> null;
             };
         }
@@ -131,13 +150,28 @@ public class MethodContext {
                 case "get_argument" -> (args -> this.getArgument(args.get(0).getAsString()));
                 case "load_line" -> (args -> {
                     int line = args.get(0).getAsInt();
-                    if (line != this.currentLine && this.commands.get(line).getAsJsonObject().has("method") && !this.commands.get(line).getAsJsonObject().get("method").getAsString().equals("load_line")) {
+                    if (this.commands.get(line).getAsJsonObject().has("method") && !this.commands.get(line).getAsJsonObject().get("method").getAsString().equals("load_line")) {
                         this.getExpression(this.commands.get(line).getAsJsonObject());
                         return true;
                     }
                     return false;
                 });
                 case "random_uuid" -> (args -> UUID.randomUUID());
+                case "is_equal" -> (args -> {
+                    Object first;
+                    Object second;
+                    if (args.get(0) instanceof JsonObject firstObj) {
+                        first = this.getExpression(firstObj);
+                    } else {
+                        first = GsonUtils.getValue(args.get(0));
+                    }
+                    if (args.get(1) instanceof JsonObject secondObj) {
+                        second = secondObj;
+                    } else {
+                        second = GsonUtils.getValue(args.get(1));
+                    }
+                    return first.equals(second);
+                });
                 default -> null;
             };
         }

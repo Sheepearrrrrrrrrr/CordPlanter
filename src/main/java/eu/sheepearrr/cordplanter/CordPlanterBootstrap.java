@@ -10,8 +10,9 @@ import com.mojang.brigadier.builder.LiteralArgumentBuilder;
 import com.mojang.brigadier.builder.RequiredArgumentBuilder;
 import com.mojang.brigadier.tree.CommandNode;
 import eu.sheepearrr.cordplanter.util.EnchantmentBuilder;
-import eu.sheepearrr.cordplanter.util.MethodContext;
+import eu.sheepearrr.cordplanter.method.MethodContext;
 import eu.sheepearrr.cordplanter.util.TextBuilder;
+import eu.sheepearrr.cordplanter.util.TranslationStuffHolder;
 import eu.sheepearrr.cordplanter.util.WorkspaceProperties;
 import io.papermc.paper.command.brigadier.CommandSourceStack;
 import io.papermc.paper.command.brigadier.Commands;
@@ -60,6 +61,7 @@ public class CordPlanterBootstrap implements PluginBootstrap {
     public Map<String, Map<String, JsonObject>> tags = new HashMap<>();
     public Map<String, Boolean> settings = new HashMap<>();
     public Map<String, Object> internalVariables = new HashMap<>();
+    public List<TranslationStuffHolder> translations = new ArrayList<>();
     public static TranslationStore.StringBased<MessageFormat> store = TranslationStore.messageFormat(Key.key("cordplanter", "store"));
     private static final Map<String, ArgumentType<?>> argumentTypes = Map.ofEntries(
             Map.entry("string", StringArgumentType.string()),
@@ -132,6 +134,7 @@ public class CordPlanterBootstrap implements PluginBootstrap {
                 workshopsDirectory.mkdir();
             }
             if (workshopsDirectory.listFiles() != null) {
+                if (this.settings.get("output_registering_phases")) CordPlanter.LOGGER.info("Registering workspaces.");
                 for (File f : Objects.requireNonNull(workshopsDirectory.listFiles())) {
                     if (!f.getName().endsWith(".json") || !f.exists()) {
                         continue;
@@ -143,7 +146,6 @@ public class CordPlanterBootstrap implements PluginBootstrap {
                     }
                     if ((!enabledWorkspaces.containsKey(jsObj.get("id").getAsString()) || enabledWorkspaces.get(jsObj.get("id").getAsString()).compileVersion < jsObj.get("compile_version").getAsInt()) && (!this.settings.get("require_current_format") || jsObj.get("format").getAsString().equals(currentFormat))) {
                         enabledWorkspaces.put(jsObj.get("id").getAsString(), new WorkspaceProperties(jsObj.get("compile_version").getAsInt(), jsObj.get("format").getAsString(), jsObj.get("display_name").getAsString(), jsObj.get("display_version").getAsString()));
-                        if (this.settings.get("output_registering_phases")) CordPlanter.LOGGER.info("Registering workspaces.");
                         for (JsonElement element : jsObj.get("workspace").getAsJsonArray()) {
                             if (element.isJsonObject()) {
                                 JsonObject elementObject = element.getAsJsonObject();
@@ -162,6 +164,23 @@ public class CordPlanterBootstrap implements PluginBootstrap {
                                         }
                                         default -> {}
                                     }
+                                } else if (elementObject.get("type").getAsString().equals("translations")) {
+                                    Map<String, MessageFormat> translationMap = new HashMap<>();
+                                    Locale locale;
+                                    JsonObject localeObj = elementObject.getAsJsonObject("locale");
+                                    if (localeObj.has("country")) {
+                                        if (localeObj.has("variant")) {
+                                            locale = Locale.of(localeObj.get("language").getAsString(), localeObj.get("country").getAsString(), localeObj.get("variant").getAsString());
+                                        } else {
+                                            locale = Locale.of(localeObj.get("language").getAsString(), localeObj.get("country").getAsString());
+                                        }
+                                    } else {
+                                        locale = Locale.of(localeObj.get("language").getAsString());
+                                    }
+                                    for (Map.Entry<String, JsonElement> translation : elementObject.get("translations").getAsJsonObject().entrySet()) {
+                                        translationMap.put(translation.getKey(), new MessageFormat(translation.getValue().getAsString(), locale));
+                                    }
+                                    translations.add(new TranslationStuffHolder(translationMap, locale));
                                 }
                             }
                         }
@@ -232,10 +251,10 @@ public class CordPlanterBootstrap implements PluginBootstrap {
                                                 Component.text()
                                                         .append(Component.text("CordPlanter").color(TextBuilder.presetColors.get("red")).decoration(TextDecoration.BOLD, TextDecoration.State.TRUE))
                                                         .append(Component.text(" | ").color(TextBuilder.presetColors.get("dark_gray")))
-                                                        .append(Component.text("Disabled workspace ").color(TextBuilder.presetColors.get("gray")))
+                                                        .append(Component.translatable("command.workspace.disable.1").color(TextBuilder.presetColors.get("gray")))
                                                         .append(Component.text(name).color(TextBuilder.presetColors.get("red")))
-                                                        .append(Component.text(".").color(TextBuilder.presetColors.get("gray")))
-                                                        .append(Component.text("\n (You do need to restart the server for it to apply. DO NOT RELOAD.)").color(TextBuilder.presetColors.get("dark_gray")))
+                                                        .append(Component.translatable("command.workspace.disable.2").color(TextBuilder.presetColors.get("gray")))
+                                                        .append(Component.translatable("command.workspace.warning").color(TextBuilder.presetColors.get("dark_gray")))
                                         );
                                         return Command.SINGLE_SUCCESS;
                                     }
@@ -243,7 +262,7 @@ public class CordPlanterBootstrap implements PluginBootstrap {
                                             Component.text()
                                                     .append(Component.text("CordPlanter").color(TextBuilder.presetColors.get("red")).decoration(TextDecoration.BOLD, TextDecoration.State.TRUE))
                                                     .append(Component.text(" | ").color(TextBuilder.presetColors.get("dark_gray")))
-                                                    .append(Component.text("Couldn't find enabled workspace to disable.").color(TextBuilder.presetColors.get("gray")))
+                                                    .append(Component.translatable("command.workspace.disable.error").color(TextBuilder.presetColors.get("gray")))
                                     );
                                     return -1;
                                 })))
@@ -261,10 +280,10 @@ public class CordPlanterBootstrap implements PluginBootstrap {
                                                 Component.text()
                                                         .append(Component.text("CordPlanter").color(TextBuilder.presetColors.get("red")).decoration(TextDecoration.BOLD, TextDecoration.State.TRUE))
                                                         .append(Component.text(" | ").color(TextBuilder.presetColors.get("dark_gray")))
-                                                        .append(Component.text("Enabled workspace ").color(TextBuilder.presetColors.get("gray")))
+                                                        .append(Component.translatable("command.workspace.enable.1").color(TextBuilder.presetColors.get("gray")))
                                                         .append(Component.text(name).color(TextBuilder.presetColors.get("green")))
-                                                        .append(Component.text(".").color(TextBuilder.presetColors.get("gray")))
-                                                        .append(Component.text("\n (You do need to restart the server for it to apply. DO NOT RELOAD.)").color(TextBuilder.presetColors.get("dark_gray")))
+                                                        .append(Component.translatable("command.workspace.enable.2").color(TextBuilder.presetColors.get("gray")))
+                                                        .append(Component.translatable("command.workspace.warning").color(TextBuilder.presetColors.get("dark_gray")))
                                         );
                                         return Command.SINGLE_SUCCESS;
                                     }
@@ -272,7 +291,7 @@ public class CordPlanterBootstrap implements PluginBootstrap {
                                             Component.text()
                                                     .append(Component.text("CordPlanter").color(TextBuilder.presetColors.get("red")).decoration(TextDecoration.BOLD, TextDecoration.State.TRUE))
                                                     .append(Component.text(" | ").color(TextBuilder.presetColors.get("dark_gray")))
-                                                    .append(Component.text("Couldn't find disabled workspace to enable.").color(TextBuilder.presetColors.get("gray")))
+                                                    .append(Component.translatable("command.workspace.enable.error").color(TextBuilder.presetColors.get("gray")))
                                     );
                                     return -1;
                                 })))
@@ -288,12 +307,20 @@ public class CordPlanterBootstrap implements PluginBootstrap {
                                                 Component.text()
                                                         .append(Component.text("CordPlanter").color(TextBuilder.presetColors.get("red")).decoration(TextDecoration.BOLD, TextDecoration.State.TRUE))
                                                         .append(Component.text(" | ").color(TextBuilder.presetColors.get("dark_gray")))
+                                                        .append(Component.translatable("command.workspace.settings.get.0"))
                                                         .append(Component.text(setting).color(TextBuilder.presetColors.get("red")))
-                                                        .append(Component.text(" is ").color(TextBuilder.presetColors.get("gray")))
-                                                        .append(Component.text(settings.get(setting) ? "enabled" : "disabled").color(TextBuilder.presetColors.get(settings.get(setting) ? "green" : "red")))
-                                                        .append(Component.text(".").color(TextBuilder.presetColors.get("gray")))
+                                                        .append(Component.translatable("command.workspace.settings.get.1").color(TextBuilder.presetColors.get("gray")))
+                                                        .append(Component.translatable(settings.get(setting) ? "command.workspace.settings.get.enabled" : "command.workspace.settings.get.disabled").color(TextBuilder.presetColors.get(settings.get(setting) ? "green" : "red")))
+                                                        .append(Component.translatable("command.workspace.settings.get.2").color(TextBuilder.presetColors.get("gray")))
                                         );
                                         return Command.SINGLE_SUCCESS;
+                                    } else {
+                                        stack.getSource().getSender().sendMessage(
+                                                Component.text()
+                                                        .append(Component.text("CordPlanter").color(TextBuilder.presetColors.get("red")).decoration(TextDecoration.BOLD, TextDecoration.State.TRUE))
+                                                        .append(Component.text(" | ").color(TextBuilder.presetColors.get("dark_gray")))
+                                                        .append(Component.translatable("command.workspace.settings.error").color(TextBuilder.presetColors.get("gray")))
+                                        );
                                     }
                                     return -1;
                                 }))).then(Commands.literal("set").then(Commands.argument("setting", StringArgumentType.string()).suggests((context, builder) -> {
@@ -310,8 +337,9 @@ public class CordPlanterBootstrap implements PluginBootstrap {
                                                     Component.text()
                                                             .append(Component.text("CordPlanter").color(TextBuilder.presetColors.get("red")).decoration(TextDecoration.BOLD, TextDecoration.State.TRUE))
                                                             .append(Component.text(" | ").color(TextBuilder.presetColors.get("dark_gray")))
+                                                            .append(Component.translatable("command.workspace.settings.set.already.0"))
                                                             .append(Component.text(setting).color(TextBuilder.presetColors.get(state ? "green" : "red")))
-                                                            .append(Component.text(" is already in that state.").color(TextBuilder.presetColors.get("gray")))
+                                                            .append(Component.translatable("command.workspace.settings.set.already.1").color(TextBuilder.presetColors.get("gray")))
                                             );
                                         } else {
                                             settings.put(setting, state);
@@ -319,23 +347,31 @@ public class CordPlanterBootstrap implements PluginBootstrap {
                                                     Component.text()
                                                             .append(Component.text("CordPlanter").color(TextBuilder.presetColors.get("red")).decoration(TextDecoration.BOLD, TextDecoration.State.TRUE))
                                                             .append(Component.text(" | ").color(TextBuilder.presetColors.get("dark_gray")))
+                                                            .append(Component.translatable("command.workspace.settings.set.0"))
                                                             .append(Component.text(setting).color(TextBuilder.presetColors.get("red")))
-                                                            .append(Component.text(" is now ").color(TextBuilder.presetColors.get("gray")))
-                                                            .append(Component.text(state ? "enabled" : "disabled").color(TextBuilder.presetColors.get(state ? "green" : "red")))
-                                                            .append(Component.text(".").color(TextBuilder.presetColors.get("gray")))
+                                                            .append(Component.translatable("command.workspace.settings.set.1").color(TextBuilder.presetColors.get("gray")))
+                                                            .append(Component.translatable(state ? "command.workspace.settings.set.enabled" : "command.workspace.settings.set.disabled").color(TextBuilder.presetColors.get(state ? "green" : "red")))
+                                                            .append(Component.translatable("command.workspace.settings.set.2").color(TextBuilder.presetColors.get("gray")))
                                             );
                                             if (setting.equals("allow_granting_operator_status") && state) {
                                                 stack.getSource().getSender().sendMessage(
                                                         Component.text()
                                                                 .append(Component.text("CordPlanter").color(TextBuilder.presetColors.get("red")).decoration(TextDecoration.BOLD, TextDecoration.State.TRUE))
                                                                 .append(Component.text(" | ").color(TextBuilder.presetColors.get("dark_gray")))
-                                                                .append(Component.text("!!! WARNING !!! Enabling this option grants workspaces the power to GRANT OPERATOR STATUS to any Player, etc. This can be used as a force-op exploit, even through harmless looking stuff like text replacement. Only enable this option if you really need it.").color(TextBuilder.presetColors.get("gray")))
-                                                                .append(Component.text("\nClick here to reset this setting.").hoverEvent(HoverEvent.showText(Component.text("RESET SETTING").color(TextBuilder.presetColors.get("red")).decoration(TextDecoration.BOLD, TextDecoration.State.TRUE))).color(TextBuilder.presetColors.get("red")).decoration(TextDecoration.BOLD, TextDecoration.State.TRUE).clickEvent(ClickEvent.runCommand("workspace settings reset allow_granting_operator_status")))
+                                                                .append(Component.translatable("command.workspace.settings.set.operator.main").color(TextBuilder.presetColors.get("gray")))
+                                                                .append(Component.translatable("command.workspace.settings.set.operator.reset").hoverEvent(HoverEvent.showText(Component.translatable("command.workspace.settings.set.operator.reset.hover").color(TextBuilder.presetColors.get("red")).decoration(TextDecoration.BOLD, TextDecoration.State.TRUE))).color(TextBuilder.presetColors.get("red")).decoration(TextDecoration.BOLD, TextDecoration.State.TRUE).clickEvent(ClickEvent.runCommand("workspace settings reset allow_granting_operator_status")))
                                                 );
-                                                CordPlanter.LOGGER.warn("\n===========================================================================================================================================================\n\n!!! CRITICAL WARNING !!!\n\nCordPlanter was configured to grant workspaces the power to grant/take away OPERATOR STATUS to/from any Player, etc. This can be used as a force-op exploit, even through harmless looking actions like text replacement.\nOnly enable this option if you really need it.\nPlease run \"workspace settings reset allow_granting_operator_status\" to reset this option.\n\n===========================================================================================================================================================");
+                                                CordPlanter.LOGGER.warn("\n===========================================================================================================================================================\n\n!!! CRITICAL WARNING !!!\n\nCordPlanter was configured to grant workspaces the power to GRANT OPERATOR STATUS to any Player, etc. This can be used as a force-op exploit, even through harmless looking stuff like text replacement.\nOnly enable this option if you really need it.\nPlease run \"workspace settings reset allow_granting_operator_status\" to reset this option.\n    - Sheepearrr, owner of CordPlanter\n\n===========================================================================================================================================================\nTranslations: https://github.com/Sheepearrrrrrrrrr/Data/tree/main/cordplanter/translations/operator_warning");
                                             }
                                         }
                                         return Command.SINGLE_SUCCESS;
+                                    } else {
+                                        stack.getSource().getSender().sendMessage(
+                                                Component.text()
+                                                        .append(Component.text("CordPlanter").color(TextBuilder.presetColors.get("red")).decoration(TextDecoration.BOLD, TextDecoration.State.TRUE))
+                                                        .append(Component.text(" | ").color(TextBuilder.presetColors.get("dark_gray")))
+                                                        .append(Component.translatable("command.workspace.settings.error").color(TextBuilder.presetColors.get("gray")))
+                                        );
                                     }
                                     return -1;
                                 })))).then(Commands.literal("reset").executes(command -> {
@@ -348,7 +384,7 @@ public class CordPlanterBootstrap implements PluginBootstrap {
                                             Component.text()
                                                     .append(Component.text("CordPlanter").color(TextBuilder.presetColors.get("red")).decoration(TextDecoration.BOLD, TextDecoration.State.TRUE))
                                                     .append(Component.text(" | ").color(TextBuilder.presetColors.get("dark_gray")))
-                                                    .append(Component.text("Successfully reset the plugin settings.").color(TextBuilder.presetColors.get("gray")))
+                                                    .append(Component.translatable("command.workspace.settings.reset").color(TextBuilder.presetColors.get("gray")))
                                     );
                                     return Command.SINGLE_SUCCESS;
                                 }).then(Commands.argument("setting", StringArgumentType.string()).suggests((context, builder) -> {
@@ -368,9 +404,9 @@ public class CordPlanterBootstrap implements PluginBootstrap {
                                                 Component.text()
                                                         .append(Component.text("CordPlanter").color(TextBuilder.presetColors.get("red")).decoration(TextDecoration.BOLD, TextDecoration.State.TRUE))
                                                         .append(Component.text(" | ").color(TextBuilder.presetColors.get("dark_gray")))
-                                                        .append(Component.text("Successfully reset the ").color(TextBuilder.presetColors.get("gray")))
+                                                        .append(Component.translatable("command.workspace.settings.reset.success.1").color(TextBuilder.presetColors.get("gray")))
                                                         .append(Component.text(setting).color(TextBuilder.presetColors.get("red")))
-                                                        .append(Component.text(" setting.").color(TextBuilder.presetColors.get("gray")))
+                                                        .append(Component.translatable("command.workspace.settings.reset.success.2").color(TextBuilder.presetColors.get("gray")))
                                         );
                                         return Command.SINGLE_SUCCESS;
                                     }
@@ -378,9 +414,7 @@ public class CordPlanterBootstrap implements PluginBootstrap {
                                             Component.text()
                                                     .append(Component.text("CordPlanter").color(TextBuilder.presetColors.get("red")).decoration(TextDecoration.BOLD, TextDecoration.State.TRUE))
                                                     .append(Component.text(" | ").color(TextBuilder.presetColors.get("dark_gray")))
-                                                    .append(Component.text("Couldn't find the ").color(TextBuilder.presetColors.get("gray")))
-                                                    .append(Component.text(setting).color(TextBuilder.presetColors.get("red")))
-                                                    .append(Component.text(" setting.").color(TextBuilder.presetColors.get("gray")))
+                                                    .append(Component.translatable("command.workspace.settings.error").color(TextBuilder.presetColors.get("gray")))
                                     );
                                     return -1;
                                 }))))
@@ -467,6 +501,12 @@ public class CordPlanterBootstrap implements PluginBootstrap {
                 }
             }));
         }
+        if (this.settings.get("allow_translations")) {
+            if (this.settings.get("output_registering_phases")) CordPlanter.LOGGER.info("Registering translations.");
+            for (TranslationStuffHolder holder : this.translations) {
+                store.registerAll(holder.locale, holder.translations);
+            }
+        }
     }
 
     private CommandNode<CommandSourceStack> then(JsonObject obj, Map<String, String> prevArgs) {
@@ -514,7 +554,7 @@ public class CordPlanterBootstrap implements PluginBootstrap {
             this.settings.put(entry.getKey(), entry.getValue().getAsBoolean());
         }
         if (!this.settings.get("require_current_format") && !this.data.get("disable_format_warning").getAsBoolean()) {
-            CordPlanter.LOGGER.warn("\n===========================================================================================================================================================\n\n!!! WARNING !!!\n\nCordPlanter is configured to not require workspaces to use the current format. This could lead to the incorrect reading of definitions or missing features.\nFor the integrity of the plugin, I would enable this option.\nTo disable this warning, change \"disable_format_warning\" to true in the data.json config file.\n    - Sheepearrr, owner of CordPlanter\n\n===========================================================================================================================================================");
+            CordPlanter.LOGGER.warn("\n===========================================================================================================================================================\n\n!!! WARNING !!!\n\nCordPlanter is configured to not require workspaces to use the current format. This could lead to the incorrect reading of definitions or missing features.\nFor the integrity of the plugin, I would enable this option.\nTo disable this warning, change \"disable_format_warning\" to true in the data.json config file.\n    - Sheepearrr, owner of CordPlanter\n\n===========================================================================================================================================================\nTranslations: https://github.com/Sheepearrrrrrrrrr/Data/tree/main/cordplanter/translations/format_warning");
         }
     }
 

@@ -1,12 +1,9 @@
-package eu.sheepearrr.cordplanter.util.methodcontainer;
+package eu.sheepearrr.cordplanter.method.container;
 
 import com.google.gson.JsonArray;
 import com.google.gson.JsonObject;
-import eu.sheepearrr.cordplanter.CordPlanter;
-import eu.sheepearrr.cordplanter.CordPlanterBootstrap;
-import eu.sheepearrr.cordplanter.util.MethodContext;
+import eu.sheepearrr.cordplanter.method.MethodContext;
 import eu.sheepearrr.cordplanter.util.TextBuilder;
-import net.kyori.adventure.text.Component;
 
 import java.util.function.Function;
 

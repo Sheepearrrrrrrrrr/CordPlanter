@@ -16,9 +16,8 @@ public class CordPlanterListener implements Listener {
     private void onPlayerJoin(PlayerJoinEvent event) {
         Player player = event.getPlayer();
         if (player.isOp() && CordPlanterBootstrap.INSTANCE.settings.get("allow_granting_operator_status")) {
-            CordPlanter.LOGGER.warn("\n===========================================================================================================================================================\n\n!!! CRITICAL WARNING !!!\n\nCordPlanter was configured to grant workspaces the power to GRANT OPERATOR STATUS to any Player, etc. This can be used as a force-op exploit, even through harmless looking stuff like text replacement.\nOnly enable this option if you really need it.\nPlease run \"workspace settings reset allow_granting_operator_status\" to reset this option.\n\n===========================================================================================================================================================");
-            player.sendMessage(Component.text("!!! CRITICAL WARNING !!!\n\nPlease check console for further instructions and the reason why this message got sent to you.").color(TextBuilder.presetColors.get("red")));
+            CordPlanter.LOGGER.warn("\n===========================================================================================================================================================\n\n!!! CRITICAL WARNING !!!\n\nCordPlanter was configured to grant workspaces the power to GRANT OPERATOR STATUS to any Player, etc. This can be used as a force-op exploit, even through harmless looking stuff like text replacement.\nOnly enable this option if you really need it.\nPlease run \"workspace settings reset allow_granting_operator_status\" to reset this option.\n    - Sheepearrr, owner of CordPlanter\n\n===========================================================================================================================================================\nTranslations: https://github.com/Sheepearrrrrrrrrr/Data/tree/main/cordplanter/translations/operator_warning");
+            player.sendMessage(Component.translatable("cordplanter.operator_warning").color(TextBuilder.presetColors.get("red")));
         }
-        player.sendMessage(GlobalTranslator.render(Component.translatable("szari"), player.locale()));
     }
 }

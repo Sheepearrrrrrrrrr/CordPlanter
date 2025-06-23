@@ -161,6 +161,95 @@
           ]
         }
       ]
+    },
+    {
+      "type": "base",
+      "base": "command",
+      "name": "generaltesting",
+      "description": "A command used for the general testing of new features",
+      "aliases": [
+        "gt"
+      ],
+      "executes": [
+        {
+          "type": "condition",
+          "condition": {
+            "type": "method",
+            "from": "sender",
+            "method": "is_op",
+            "arguments": [
+            ]
+          },
+          "then": [
+            {
+              "type": "method",
+              "from": "sender",
+              "method": "send_message",
+              "arguments": [
+                [
+                  {
+                    "text": "You are an operator."
+                  }
+                ]
+              ]
+            }
+          ],
+          "else": [
+            {
+              "type": "method",
+              "from": "sender",
+              "method": "send_message",
+              "arguments": [
+                [
+                  {
+                    "text": "You are NOT an operator."
+                  }
+                ]
+              ]
+            }
+          ]
+        },
+        {
+          "type": "schedule",
+          "delay": 40,
+          "commands": [
+            {
+              "type": "method",
+              "from": "sender",
+              "method": "send_message",
+              "arguments": [
+                [
+                  {
+                    "text": "DELAY!"
+                  }
+                ]
+              ]
+            }
+          ]
+        },
+        {
+          "type": "method",
+          "from": "sender",
+          "method": "send_message",
+          "arguments": [
+            [
+              {
+                "translate": "command_test.test"
+              }
+            ]
+          ]
+        }
+      ]
+    },
+    {
+      "type": "translations",
+      "locale": {
+        "language": "en",
+        "country": "US"
+      },
+      "translations": {
+        "command_test.test": "TEST"
+      }
     }
   ],
   "id": "command_test"

@@ -6,6 +6,7 @@ import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 import eu.sheepearrr.cordplanter.CordPlanter;
 import eu.sheepearrr.cordplanter.CordPlanterBootstrap;
+import eu.sheepearrr.cordplanter.method.MethodContext;
 import net.kyori.adventure.key.Key;
 import net.kyori.adventure.text.BlockNBTComponent;
 import net.kyori.adventure.text.Component;
