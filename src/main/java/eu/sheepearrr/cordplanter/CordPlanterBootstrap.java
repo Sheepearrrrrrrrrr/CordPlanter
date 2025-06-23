@@ -5,20 +5,14 @@ import com.google.gson.JsonArray;
 import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 import com.mojang.brigadier.Command;
-import com.mojang.brigadier.StringReader;
 import com.mojang.brigadier.arguments.*;
-import com.mojang.brigadier.builder.ArgumentBuilder;
 import com.mojang.brigadier.builder.LiteralArgumentBuilder;
 import com.mojang.brigadier.builder.RequiredArgumentBuilder;
-import com.mojang.brigadier.suggestion.SuggestionProvider;
 import com.mojang.brigadier.tree.CommandNode;
-import com.mojang.brigadier.tree.LiteralCommandNode;
 import eu.sheepearrr.cordplanter.util.EnchantmentBuilder;
 import eu.sheepearrr.cordplanter.util.MethodContext;
 import eu.sheepearrr.cordplanter.util.TextBuilder;
 import eu.sheepearrr.cordplanter.util.WorkspaceProperties;
-import fr.mrmicky.fastboard.FastBoardBase;
-import fr.mrmicky.fastboard.adventure.FastBoard;
 import io.papermc.paper.command.brigadier.CommandSourceStack;
 import io.papermc.paper.command.brigadier.Commands;
 import io.papermc.paper.command.brigadier.argument.ArgumentTypes;
@@ -32,20 +26,17 @@ import io.papermc.paper.plugin.lifecycle.event.types.LifecycleEvents;
 import io.papermc.paper.registry.RegistryKey;
 import io.papermc.paper.registry.TypedKey;
 import io.papermc.paper.registry.event.RegistryEvents;
-import io.papermc.paper.registry.tag.TagKey;
 import net.kyori.adventure.key.Key;
 import net.kyori.adventure.text.Component;
-import net.kyori.adventure.text.TranslatableComponent;
 import net.kyori.adventure.text.event.ClickEvent;
 import net.kyori.adventure.text.event.HoverEvent;
 import net.kyori.adventure.text.format.TextDecoration;
-import net.kyori.adventure.title.Title;
+import net.kyori.adventure.translation.GlobalTranslator;
+import net.kyori.adventure.translation.TranslationStore;
+import net.kyori.adventure.util.UTF8ResourceBundleControl;
 import org.bukkit.World;
 import org.bukkit.entity.Entity;
-import org.bukkit.inventory.ItemType;
 import org.bukkit.plugin.java.JavaPlugin;
-import org.checkerframework.checker.units.qual.C;
-import org.jetbrains.annotations.Nullable;
 
 import java.io.BufferedReader;
 import java.io.File;
@@ -54,6 +45,7 @@ import java.io.InputStreamReader;
 import java.net.HttpURLConnection;
 import java.net.URI;
 import java.net.URL;
+import java.text.MessageFormat;
 import java.util.*;
 import java.util.Map.Entry;
 
@@ -68,6 +60,7 @@ public class CordPlanterBootstrap implements PluginBootstrap {
     public Map<String, Map<String, JsonObject>> tags = new HashMap<>();
     public Map<String, Boolean> settings = new HashMap<>();
     public Map<String, Object> internalVariables = new HashMap<>();
+    public static TranslationStore.StringBased<MessageFormat> store = TranslationStore.messageFormat(Key.key("cordplanter", "store"));
     private static final Map<String, ArgumentType<?>> argumentTypes = Map.ofEntries(
             Map.entry("string", StringArgumentType.string()),
             Map.entry("word", StringArgumentType.word()),
@@ -102,8 +95,14 @@ public class CordPlanterBootstrap implements PluginBootstrap {
             Map.entry("player_profiles", PlayerProfileListResolver.class)
     );
 
+    static {
+        store.registerAll(Locale.US, ResourceBundle.getBundle("translation.Bundle", Locale.US, UTF8ResourceBundleControl.get()), true);
+        store.registerAll(Locale.of("hu", "HU"), ResourceBundle.getBundle("translation.Bundle", Locale.of("hu", "HU"), UTF8ResourceBundleControl.get()), true);
+    }
+
     @Override
     public void bootstrap(BootstrapContext bootstrapContext) {
+        GlobalTranslator.translator().addSource(store);
         try {
             Gson gson = new Gson();
             INSTANCE = this;
@@ -144,6 +143,7 @@ public class CordPlanterBootstrap implements PluginBootstrap {
                     }
                     if ((!enabledWorkspaces.containsKey(jsObj.get("id").getAsString()) || enabledWorkspaces.get(jsObj.get("id").getAsString()).compileVersion < jsObj.get("compile_version").getAsInt()) && (!this.settings.get("require_current_format") || jsObj.get("format").getAsString().equals(currentFormat))) {
                         enabledWorkspaces.put(jsObj.get("id").getAsString(), new WorkspaceProperties(jsObj.get("compile_version").getAsInt(), jsObj.get("format").getAsString(), jsObj.get("display_name").getAsString(), jsObj.get("display_version").getAsString()));
+                        if (this.settings.get("output_registering_phases")) CordPlanter.LOGGER.info("Registering workspaces.");
                         for (JsonElement element : jsObj.get("workspace").getAsJsonArray()) {
                             if (element.isJsonObject()) {
                                 JsonObject elementObject = element.getAsJsonObject();
@@ -169,6 +169,7 @@ public class CordPlanterBootstrap implements PluginBootstrap {
                 }
             }
             bootstrapContext.getLifecycleManager().registerEventHandler(LifecycleEvents.COMMANDS, commandContext -> {
+                if (this.settings.get("output_registering_phases")) CordPlanter.LOGGER.info("Register workspace command.");
                 commandContext.registrar().register(
                         Commands.literal("workspace")
                                 .requires(stack -> stack.getSender().isOp())
@@ -385,16 +386,8 @@ public class CordPlanterBootstrap implements PluginBootstrap {
                                 }))))
                                 .build()
                 );
-                commandContext.registrar().register(Commands.literal("testingtesting").executes(stack -> {
-                    for (Map.Entry<String, JsonObject> entry : CordPlanterBootstrap.INSTANCE.commands.entrySet()) {
-                        Map<String, Object> props = Map.ofEntries(
-                                Map.entry("executer", stack.getSource().getExecutor())
-                        );
-                        MethodContext context = new MethodContext(entry.getValue().getAsJsonArray("requires").asList(), props);
-                    }
-                    return Command.SINGLE_SUCCESS;
-                }).build());
                 if (this.settings.get("allow_custom_commands")) {
+                    if (this.settings.get("output_registering_phases")) CordPlanter.LOGGER.info("Registering custom commands.");
                     for (Entry<String, JsonObject> entry : commands.entrySet()) {
                         LiteralArgumentBuilder<CommandSourceStack> node = Commands.literal(entry.getKey());
                         if (entry.getValue().has("requires")) {
@@ -447,6 +440,7 @@ public class CordPlanterBootstrap implements PluginBootstrap {
             throw new RuntimeException(e);
         }
         if (this.settings.get("allow_custom_enchantments")) {
+            if (this.settings.get("output_registering_phases")) CordPlanter.LOGGER.info("Registering custom enchantments.");
             bootstrapContext.getLifecycleManager().registerEventHandler(RegistryEvents.ENCHANTMENT.compose().newHandler(event -> {
                 for (Map.Entry<String, JsonObject> entry : enchants.entrySet()) {
                     event.registry().register(TypedKey.create(RegistryKey.ENCHANTMENT, entry.getKey()), builder -> {

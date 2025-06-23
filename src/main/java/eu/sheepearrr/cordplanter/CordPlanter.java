@@ -29,6 +29,7 @@ public final class CordPlanter extends JavaPlugin {
         File dataFile = new File(dataDir.getPath() + "/data.json");
         try {
             FileWriter writer = new FileWriter(dataFile);
+            CordPlanterBootstrap.INSTANCE.data.addProperty("warning", "DO NOT TAMPER WITH THESE MANUALLY UNLESS YOU WANT TO DISABLE THE FORMAT WARNING. THE PLUGIN WILL NOT CHECK IF AN OPTION EXISTS, IT WILL AUTOMATICALLY ASSUME SO. IF YOU INSTALL A NEW VERSION OF THE PLUGIN WITH DIFFERENT DEFAULT SETTINGS CONSIDER RESETTING THE SETTINGS IN-GAME WITH /workspace settings reset. USE THE IN-GAME COMMAND INSTEAD (/workspace ...).");
             for (int i = 0; i < CordPlanterBootstrap.INSTANCE.data.get("disabled").getAsJsonArray().size(); i++) {
                 CordPlanterBootstrap.INSTANCE.data.get("disabled").getAsJsonArray().remove(i);
             }
@@ -38,7 +39,6 @@ public final class CordPlanter extends JavaPlugin {
             for (Map.Entry<String, Boolean> entry : CordPlanterBootstrap.INSTANCE.settings.entrySet()) {
                 CordPlanterBootstrap.INSTANCE.data.getAsJsonObject("settings").addProperty(entry.getKey(), entry.getValue());
             }
-            CordPlanterBootstrap.INSTANCE.data.addProperty("warning", "DO NOT TAMPER WITH THESE MANUALLY UNLESS YOU WANT TO DISABLE THE FORMAT WARNING. THE PLUGIN WILL NOT CHECK IF AN OPTION EXISTS, IT WILL AUTOMATICALLY ASSUME SO. IF YOU INSTALL A NEW VERSION OF THE PLUGIN WITH DIFFERENT DEFAULT SETTINGS CONSIDER RESETTING THE SETTINGS IN-GAME WITH \"/workspace settings reset\". USE THE IN-GAME COMMAND INSTEAD (/workspace ...).");
             GsonBuilder gsonBuilder = new GsonBuilder();
             gsonBuilder.setPrettyPrinting();
             writer.write(gsonBuilder.create().toJson(CordPlanterBootstrap.INSTANCE.data));

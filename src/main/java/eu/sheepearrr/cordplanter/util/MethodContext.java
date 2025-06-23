@@ -19,16 +19,14 @@ import org.bukkit.entity.Entity;
 import org.bukkit.entity.Player;
 import org.jetbrains.annotations.Nullable;
 
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 import java.util.function.Function;
 import java.util.function.Predicate;
 
 public class MethodContext {
     public Map<String, Object> props = new HashMap<>();
     public final List<JsonElement> commands;
+    private int currentLine;
 
     public MethodContext(List<JsonElement> commands, Map<String, Object> props) {
         this.commands = commands;
@@ -62,6 +60,7 @@ public class MethodContext {
     }
 
     public boolean requires(CommandSourceStack stack) {
+        currentLine = 0;
         for (JsonElement element : commands) {
             JsonObject obj = element.getAsJsonObject();
             switch (obj.get("type").getAsString()) {
@@ -70,6 +69,7 @@ public class MethodContext {
                 }
                 case "method" -> getExpression(obj).apply(obj.getAsJsonArray("arguments"));
             }
+            currentLine++;
         }
         return true;
     }
@@ -87,6 +87,7 @@ public class MethodContext {
     }
 
     public int executes(CommandContext<CommandSourceStack> context) {
+        currentLine = 0;
         for (JsonElement element : commands) {
             JsonObject obj = element.getAsJsonObject();
             switch (obj.get("type").getAsString()) {
@@ -96,8 +97,21 @@ public class MethodContext {
                 case "method" -> getExpression(obj).apply(obj.getAsJsonArray("arguments"));
                 case "schedule" -> schedule(obj);
             }
+            currentLine++;
         }
         return Command.SINGLE_SUCCESS;
+    }
+
+    public void resourceCallback() {
+        currentLine = 0;
+        for (JsonElement element : commands) {
+            JsonObject obj = element.getAsJsonObject();
+            switch (obj.get("type").getAsString()) {
+                case "method" -> getExpression(obj).apply(obj.getAsJsonArray("arguments"));
+                case "schedule" -> schedule(obj);
+            }
+            currentLine++;
+        }
     }
 
     public Function<JsonArray, Object> getExpression(JsonObject obj) {
@@ -115,6 +129,15 @@ public class MethodContext {
                 case "set_variable" -> (args -> this.setVariableTo(args.get(0).getAsString(), args.get(1)));
                 case "set_internal_variable" -> (args -> this.setInternalVariableTo(args.get(0).getAsString(), args.get(1)));
                 case "get_argument" -> (args -> this.getArgument(args.get(0).getAsString()));
+                case "load_line" -> (args -> {
+                    int line = args.get(0).getAsInt();
+                    if (line != this.currentLine && this.commands.get(line).getAsJsonObject().has("method") && !this.commands.get(line).getAsJsonObject().get("method").getAsString().equals("load_line")) {
+                        this.getExpression(this.commands.get(line).getAsJsonObject());
+                        return true;
+                    }
+                    return false;
+                });
+                case "random_uuid" -> (args -> UUID.randomUUID());
                 default -> null;
             };
         }

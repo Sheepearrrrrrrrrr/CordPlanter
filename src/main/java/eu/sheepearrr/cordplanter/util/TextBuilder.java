@@ -9,6 +9,7 @@ import eu.sheepearrr.cordplanter.CordPlanterBootstrap;
 import net.kyori.adventure.key.Key;
 import net.kyori.adventure.text.BlockNBTComponent;
 import net.kyori.adventure.text.Component;
+import net.kyori.adventure.text.TranslatableComponent;
 import net.kyori.adventure.text.event.ClickEvent;
 import net.kyori.adventure.text.event.HoverEvent;
 import net.kyori.adventure.text.format.TextColor;
@@ -106,7 +107,19 @@ public class TextBuilder {
             }
             comp = Component.text(text);
         } else if (jsonObj.has("translate")) {
-            comp = Component.translatable(jsonObj.get("translate").getAsString());
+            TranslatableComponent translatableComponent = Component.translatable(jsonObj.get("translate").getAsString());
+            if (jsonObj.has("arguments")) {
+                if (jsonObj.get("arguments") instanceof JsonArray array) {
+                    List<Component> args = new ArrayList<>();
+                    for (JsonElement argument : array) {
+                        args.add(getComponentFromJsonElement(argument, mContext, false));
+                    }
+                    translatableComponent = translatableComponent.arguments(args);
+                } else {
+                    translatableComponent = translatableComponent.arguments(getComponentFromJsonElement(jsonObj.get("arguments"), mContext, false));
+                }
+            }
+            comp = translatableComponent;
         } else if (jsonObj.has("keybind")) {
             comp = Component.keybind(jsonObj.get("keybind").getAsString());
         } else if (jsonObj.has("score")) {

@@ -7,8 +7,10 @@
     "allow_granting_operator_status": false,
     "allow_scoreboard_manipulation": false,
     "allow_tag_manipulation": true,
-    "allow_text_replacement": true
+    "allow_text_replacement": true,
+    "output_registering_phases": false,
+    "allow_resource_pack_application": false
   },
   "disable_format_warning": false,
-  "warning": "DO NOT TAMPER WITH THESE MANUALLY UNLESS YOU WANT TO DISABLE THE FORMAT WARNING. THE PLUGIN WILL NOT CHECK IF AN OPTION EXISTS, IT WILL AUTOMATICALLY ASSUME SO. IF YOU INSTALL A NEW VERSION OF THE PLUGIN WITH DIFFERENT DEFAULT SETTINGS CONSIDER RESETTING THE SETTINGS IN-GAME WITH \"/workspace settings reset\". USE THE IN-GAME COMMAND INSTEAD (/workspace ...)."
+  "warning": "DO NOT TAMPER WITH THESE MANUALLY UNLESS YOU WANT TO DISABLE THE FORMAT WARNING. THE PLUGIN WILL NOT CHECK IF AN OPTION EXISTS, IT WILL AUTOMATICALLY ASSUME SO. IF YOU INSTALL A NEW VERSION OF THE PLUGIN WITH DIFFERENT DEFAULT SETTINGS CONSIDER RESETTING THE SETTINGS IN-GAME WITH /workspace settings reset. USE THE IN-GAME COMMAND INSTEAD (/workspace ...)."
 }

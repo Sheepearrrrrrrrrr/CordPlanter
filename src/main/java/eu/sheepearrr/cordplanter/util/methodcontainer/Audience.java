@@ -3,15 +3,18 @@ package eu.sheepearrr.cordplanter.util.methodcontainer;
 import com.google.gson.JsonArray;
 import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
+import eu.sheepearrr.cordplanter.CordPlanterBootstrap;
 import eu.sheepearrr.cordplanter.util.MethodContext;
 import eu.sheepearrr.cordplanter.util.TextBuilder;
 import net.kyori.adventure.bossbar.BossBar;
+import net.kyori.adventure.resource.ResourcePackCallback;
 import net.kyori.adventure.resource.ResourcePackInfo;
 import net.kyori.adventure.resource.ResourcePackRequest;
 import net.kyori.adventure.text.Component;
 import net.kyori.adventure.title.Title;
 import net.kyori.adventure.title.TitlePart;
 
+import java.net.URI;
 import java.time.Duration;
 import java.util.*;
 import java.util.function.Function;
@@ -39,6 +42,8 @@ public class Audience implements BasicMethodContainer {
                 case "send_title_part" -> this::sendTitlePart;
                 case "clear_title" -> this::clearTitle;
                 case "reset_title" -> this::resetTitle;
+                case "clear_resource_packs" -> this::clearResourcePacks;
+                case "send_resource_packs", "send_resource_pack" -> this::sendResourcePacks;
                 default -> BasicMethodContainer.super.getExpression(obj);
             };
         }
@@ -203,6 +208,63 @@ public class Audience implements BasicMethodContainer {
     public boolean resetTitle(JsonArray args) {
         this.audience.resetTitle();
         return true;
+    }
+
+    public boolean clearResourcePacks(JsonArray args) {
+        if (CordPlanterBootstrap.INSTANCE.settings.get("allow_resource_pack_application")) {
+            this.audience.clearResourcePacks();
+            return true;
+        }
+        return false;
+    }
+
+    public boolean sendResourcePacks(JsonArray args) {
+        if (CordPlanterBootstrap.INSTANCE.settings.get("allow_resource_pack_application")) {
+            ResourcePackRequest.Builder builder = ResourcePackRequest.resourcePackRequest();
+            if (args.get(0) instanceof JsonArray array) {
+                List<ResourcePackInfo> packInfos = new ArrayList<>();
+                for (JsonElement request : array) {
+                    JsonObject requestObject = request.getAsJsonObject();
+                    packInfos.add(ResourcePackInfo.resourcePackInfo(UUID.fromString(requestObject.get("uuid").getAsString()), URI.create(requestObject.get("uri").getAsString()), requestObject.get("hash").getAsString()));
+                }
+                builder.packs(packInfos);
+            } else if (args.get(0) instanceof JsonObject obj) {
+                builder.packs(List.of(ResourcePackInfo.resourcePackInfo(UUID.fromString(obj.get("uuid").getAsString()), URI.create(obj.get("uri").getAsString()), obj.get("hash").getAsString())));
+            } else {
+                return false;
+            }
+            if (args.size() > 1 && args.get(1) instanceof JsonObject optionsObject) {
+                if (optionsObject.has("prompt")) {
+                    builder.prompt(TextBuilder.getComponentFromJsonElement(optionsObject.get("prompt"), this.context, false));
+                }
+                if (optionsObject.has("required")) {
+                    builder.required(optionsObject.get("required").getAsBoolean());
+                }
+                if (optionsObject.has("replace")) {
+                    builder.replace(optionsObject.get("replace").getAsBoolean());
+                }
+                if (optionsObject.has("callback")) {
+                    builder.callback(ResourcePackCallback.onTerminal((uuid, aud) -> {
+                        Map<String, Object> props = Map.ofEntries(
+                                Map.entry("uuid", uuid),
+                                Map.entry("audience", aud)
+                        );
+                        MethodContext context = new MethodContext(optionsObject.get("on_success").getAsJsonArray().asList(), props);
+                        context.resourceCallback();
+                    }, (uuid, aud) -> {
+                        Map<String, Object> props = Map.ofEntries(
+                                Map.entry("uuid", uuid),
+                                Map.entry("audience", aud)
+                        );
+                        MethodContext context = new MethodContext(optionsObject.get("on_failure").getAsJsonArray().asList(), props);
+                        context.resourceCallback();
+                    }));
+                }
+            }
+            this.audience.sendResourcePacks(builder.asResourcePackRequest());
+            return true;
+        }
+        return false;
     }
 
     @Override

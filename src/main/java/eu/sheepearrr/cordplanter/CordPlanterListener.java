@@ -2,6 +2,7 @@ package eu.sheepearrr.cordplanter;
 
 import eu.sheepearrr.cordplanter.util.TextBuilder;
 import net.kyori.adventure.text.Component;
+import net.kyori.adventure.translation.GlobalTranslator;
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.Listener;
@@ -18,5 +19,6 @@ public class CordPlanterListener implements Listener {
             CordPlanter.LOGGER.warn("\n===========================================================================================================================================================\n\n!!! CRITICAL WARNING !!!\n\nCordPlanter was configured to grant workspaces the power to GRANT OPERATOR STATUS to any Player, etc. This can be used as a force-op exploit, even through harmless looking stuff like text replacement.\nOnly enable this option if you really need it.\nPlease run \"workspace settings reset allow_granting_operator_status\" to reset this option.\n\n===========================================================================================================================================================");
             player.sendMessage(Component.text("!!! CRITICAL WARNING !!!\n\nPlease check console for further instructions and the reason why this message got sent to you.").color(TextBuilder.presetColors.get("red")));
         }
+        player.sendMessage(GlobalTranslator.render(Component.translatable("szari"), player.locale()));
     }
 }
