@@ -14,6 +14,11 @@ public class CommandSourceStack implements BasicMethodContainer {
     public io.papermc.paper.command.brigadier.CommandSourceStack stack;
     public MethodContext context;
 
+    public CommandSourceStack(io.papermc.paper.command.brigadier.CommandSourceStack stack, MethodContext context) {
+        this.stack = stack;
+        this.context = context;
+    }
+
     @Override
     public Function<JsonArray, Object> getExpression(JsonObject obj) {
         if (obj.has("method")) {

@@ -1,6 +1,37 @@
 name: CordPlanter
-version: '1.0-SNAPSHOT'
+version: '1.0.0-R.0-SNAPSHOT'
 main: eu.sheepearrr.cordplanter.CordPlanter
 api-version: '1.21.6'
+description: Make Custom Functionality Easier.
 authors: [ Sheepearrr ]
 bootstrapper: eu.sheepearrr.cordplanter.CordPlanterBootstrap
+permissions:
+  cordplanter.workspace:
+    description: 'Workspace configuration permission.'
+    default: op
+    children:
+      cordplanter.workspace.info:
+        default: true
+        description: 'See info about workspaces or CordPlanter.'
+      cordplanter.workspace.settings:
+        description: 'Edit and view the settings.'
+        default: true
+        children:
+          cordplanter.workspace.settings.get:
+            default: true
+            description: 'Get the current state of settings.'
+          cordplanter.workspace.settings.set:
+            description: 'Set the states of settings.'
+            default: true
+          cordplanter.workspace.settings.reset:
+            default: true
+            description: 'Reset the settings one by one or all at once.'
+      cordplanter.workspace.disable:
+        description: 'Disable a workspace.'
+        default: true
+      cordplanter.workspace.enable:
+        description: 'Enable a workspace.'
+        default: true
+      cordplanter.workspace.list:
+        description: 'List every active workspace.'
+        default: true

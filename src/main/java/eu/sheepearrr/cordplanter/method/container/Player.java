@@ -37,6 +37,6 @@ public class Player extends CommandSender {
     }
 
     public boolean performCommand(JsonArray args) {
-        return this.player.performCommand(TextBuilder.textReplacement(new JsonObject(), args.get(0).getAsString(), this.context));
+        return this.player.performCommand(TextBuilder.textReplacement(new JsonObject(), (String) this.context.getValue(args.get(0)), this.context));
     }
 }

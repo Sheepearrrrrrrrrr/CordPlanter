@@ -1,15 +1,24 @@
 package eu.sheepearrr.cordplanter.util;
 
+import java.util.List;
+
 public class WorkspaceProperties {
     public final int compileVersion;
     public final String format;
-    public final String displayName;
-    public final String displayVersion;
+    public String displayName;
+    public String displayVersion;
+    public List<String> authors;
 
-    public WorkspaceProperties(int compileVersion, String format, String displayName, String displayVersion) {
+    public WorkspaceProperties(int compileVersion, String format) {
         this.compileVersion = compileVersion;
         this.format = format;
-        this.displayName = displayName;
-        this.displayVersion = displayVersion;
+    }
+
+    public String getDisplayName(String id) {
+        return this.displayName != null ? this.displayName : id;
+    }
+
+    public String getDisplayVersion() {
+        return this.displayVersion != null ? this.displayVersion : String.valueOf(this.compileVersion);
     }
 }

@@ -8,7 +8,7 @@
     "allow_scoreboard_manipulation": false,
     "allow_tag_manipulation": true,
     "allow_text_replacement": true,
-    "output_registering_phases": true,
+    "output_registering_phases": false,
     "allow_resource_pack_application": false,
     "allow_translations": true
   },

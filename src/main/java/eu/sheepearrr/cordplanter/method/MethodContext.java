@@ -3,6 +3,7 @@ package eu.sheepearrr.cordplanter.method;
 import com.google.gson.JsonArray;
 import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
+import com.google.gson.JsonPrimitive;
 import com.mojang.brigadier.Command;
 import com.mojang.brigadier.context.CommandContext;
 import eu.sheepearrr.cordplanter.CordPlanter;
@@ -43,6 +44,14 @@ public class MethodContext {
     public Object getInternalVariable(String name) {
         return CordPlanterBootstrap.INSTANCE.internalVariables.get(name);
     }
+    
+    public Object removeVariable(String name) {
+        return this.props.remove(name);
+    }
+    
+    public Object removeInternalVariable(String name) {
+        return CordPlanterBootstrap.INSTANCE.internalVariables.remove(name);
+    }
 
     public CommandContext<CommandSourceStack> getCommandContext() {
         return (CommandContext<CommandSourceStack>) this.props.get("{<context");
@@ -66,6 +75,32 @@ public class MethodContext {
             currentLine++;
         }
         return true;
+    }
+
+    public Object getValue(JsonElement value) {
+        if (value instanceof JsonPrimitive primitive) {
+            if (primitive.isString()) {
+                return primitive.getAsString();
+            } else if (primitive.isBoolean()) {
+                return primitive.getAsBoolean();
+            }
+            if (primitive.getAsNumber().doubleValue() % 1 == 0) {
+                return primitive.getAsInt();
+            }
+            return primitive.getAsDouble();
+        } else if (value instanceof JsonObject object) {
+            if (object.has("type") && object.get("type").getAsString().equals("method")) {
+                return this.getExpression(object).apply(object.has("arguments") ? object.get("arguments").getAsJsonArray() : new JsonArray());
+            }
+            return object;
+        } else if (value instanceof JsonArray array) {
+            List<Object> newList = new ArrayList<>();
+            for (JsonElement object : array) {
+                newList.add(getValue(object));
+            }
+            return newList;
+        }
+        return null;
     }
 
     private void schedule(JsonObject obj) {
@@ -138,6 +173,7 @@ public class MethodContext {
             return switch (props.get(obj.get("from").getAsString())) {
                 case Player player -> new eu.sheepearrr.cordplanter.method.container.Player(player, this).getExpression(obj);
                 case CommandSender sender -> new eu.sheepearrr.cordplanter.method.container.CommandSender(sender, this).getExpression(obj);
+                case CommandSourceStack stack -> new eu.sheepearrr.cordplanter.method.container.CommandSourceStack(stack, this).getExpression(obj);
                 default -> null;
             };
         }
@@ -145,11 +181,15 @@ public class MethodContext {
             return switch (obj.get("method").getAsString()) {
                 case "get_variable" -> (args -> this.getVariable(args.get(0).getAsString()));
                 case "get_internal_variable" -> (args -> this.getInternalVariable(args.get(0).getAsString()));
-                case "set_variable" -> (args -> this.setVariableTo(args.get(0).getAsString(), args.get(1)));
-                case "set_internal_variable" -> (args -> this.setInternalVariableTo(args.get(0).getAsString(), args.get(1)));
+                case "set_variable" -> (args -> args.get(1) instanceof JsonObject object && object.has("is_expression") && object.get("is_expression").getAsBoolean()
+                        ? this.setVariableTo(args.get(0).getAsString(), this.getExpression(object).apply(object.get("arguments").getAsJsonArray()))
+                        : this.setVariableTo(args.get(0).getAsString(), GsonUtils.getValue(args.get(1))));
+                case "set_internal_variable" -> (args -> args.get(1) instanceof JsonObject object && object.has("is_expression") && object.get("is_expression").getAsBoolean()
+                        ? this.setInternalVariableTo(args.get(0).getAsString(), this.getExpression(object).apply(object.get("arguments").getAsJsonArray()))
+                        : this.setInternalVariableTo(args.get(0).getAsString(), GsonUtils.getValue(args.get(1))));
                 case "get_argument" -> (args -> this.getArgument(args.get(0).getAsString()));
                 case "load_line" -> (args -> {
-                    int line = args.get(0).getAsInt();
+                    int line = (int) this.getValue(args.get(0));
                     if (this.commands.get(line).getAsJsonObject().has("method") && !this.commands.get(line).getAsJsonObject().get("method").getAsString().equals("load_line")) {
                         this.getExpression(this.commands.get(line).getAsJsonObject());
                         return true;
@@ -158,19 +198,17 @@ public class MethodContext {
                 });
                 case "random_uuid" -> (args -> UUID.randomUUID());
                 case "is_equal" -> (args -> {
-                    Object first;
-                    Object second;
-                    if (args.get(0) instanceof JsonObject firstObj) {
-                        first = this.getExpression(firstObj);
-                    } else {
-                        first = GsonUtils.getValue(args.get(0));
-                    }
-                    if (args.get(1) instanceof JsonObject secondObj) {
-                        second = secondObj;
-                    } else {
-                        second = GsonUtils.getValue(args.get(1));
-                    }
+                    Object first = getValue(args.get(0));
+                    Object second = getValue(args.get(1));
                     return first.equals(second);
+                });
+                case "ternary_condition" -> (args -> {
+                    JsonObject object = args.get(0).getAsJsonObject();
+                    if ((boolean) this.getExpression(object.get("condition").getAsJsonObject()).apply(object.get("condition").getAsJsonObject().get("arguments").getAsJsonArray())) {
+                        return this.getValue(object.get("then"));
+                    } else {
+                        return this.getValue(args.get(1));
+                    }
                 });
                 default -> null;
             };

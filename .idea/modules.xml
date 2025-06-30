@@ -3,6 +3,7 @@
   <component name="ProjectModuleManager">
     <modules>
       <module fileurl="file://$PROJECT_DIR$/.idea/modules/CordPlanter.main.iml" filepath="$PROJECT_DIR$/.idea/modules/CordPlanter.main.iml" />
+      <module fileurl="file://$PROJECT_DIR$/.idea/modules/CordPlanter.test.iml" filepath="$PROJECT_DIR$/.idea/modules/CordPlanter.test.iml" />
     </modules>
   </component>
 </project>
