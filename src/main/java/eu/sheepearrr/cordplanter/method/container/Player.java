@@ -7,7 +7,7 @@ import eu.sheepearrr.cordplanter.util.TextBuilder;
 
 import java.util.function.Function;
 
-public class Player extends CommandSender {
+public class Player extends Entity {
     public final org.bukkit.entity.Player player;
 
     public Player(org.bukkit.entity.Player player, MethodContext context) {

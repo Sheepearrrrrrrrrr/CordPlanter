@@ -1,17 +1,19 @@
 package eu.sheepearrr.cordplanter.method;
 
-import com.google.gson.JsonArray;
-import com.google.gson.JsonElement;
-import com.google.gson.JsonObject;
-import com.google.gson.JsonPrimitive;
+import com.google.gson.*;
 import com.mojang.brigadier.Command;
 import com.mojang.brigadier.context.CommandContext;
+import com.mojang.brigadier.exceptions.CommandSyntaxException;
 import eu.sheepearrr.cordplanter.CordPlanter;
 import eu.sheepearrr.cordplanter.CordPlanterBootstrap;
 import eu.sheepearrr.cordplanter.util.GsonUtils;
 import io.papermc.paper.command.brigadier.CommandSourceStack;
+import io.papermc.paper.command.brigadier.argument.resolvers.selector.EntitySelectorArgumentResolver;
+import io.papermc.paper.command.brigadier.argument.resolvers.selector.PlayerSelectorArgumentResolver;
+import net.kyori.adventure.audience.Audience;
 import org.bukkit.Bukkit;
 import org.bukkit.command.CommandSender;
+import org.bukkit.entity.Entity;
 import org.bukkit.entity.Player;
 
 import java.util.*;
@@ -21,10 +23,27 @@ public class MethodContext {
     public Map<String, Object> props = new HashMap<>();
     public final List<JsonElement> commands;
     private int currentLine;
+    public String namespace;
+    private CommandSourceStack stack;
 
-    public MethodContext(List<JsonElement> commands, Map<String, Object> props) {
+    public MethodContext(List<JsonElement> commands, Map<String, Object> props, String namespace) {
         this.commands = commands;
         this.props = props;
+        this.namespace = namespace;
+    }
+
+    public Object getConfigValueFromShortcut(String shortcut, String configName) {
+        if (CordPlanterBootstrap.INSTANCE.configs.containsKey(namespace)) {
+            return CordPlanterBootstrap.INSTANCE.configs.get(namespace).getValueFromShortcut(shortcut, configName);
+        }
+        return null;
+    }
+
+    public Object getConfigValue(String key, String configName) {
+        if (CordPlanterBootstrap.INSTANCE.configs.containsKey(namespace)) {
+            return CordPlanterBootstrap.INSTANCE.configs.get(namespace).getValue(key, configName);
+        }
+        return null;
     }
 
     public boolean setVariableTo(String name, Object value) {
@@ -54,15 +73,44 @@ public class MethodContext {
     }
 
     public CommandContext<CommandSourceStack> getCommandContext() {
-        return (CommandContext<CommandSourceStack>) this.props.get("{<context");
+        @SuppressWarnings("unchecked")
+        CommandContext<CommandSourceStack> ctx = (CommandContext<CommandSourceStack>) this.props.get("{<context");
+        return ctx;
     }
 
     public Object getArgument(String name) {
-        return this.getCommandContext().getArgument(name, CordPlanterBootstrap.argumentTypeOutputs.get(((Map<String, String>) this.props.get("{<arguments")).get(name)));
+        Map<String, String> arguments;
+        if (this.props.get("{<arguments") instanceof Map<?, ?> map) {
+            arguments = new HashMap<>();
+            for (Map.Entry<?, ?> entry : map.entrySet()) {
+                Object key = entry.getKey();
+                Object value = entry.getValue();
+                if (key instanceof String && value instanceof String) {
+                    arguments.put((String) key, (String) value);
+                }
+            }
+            String type = arguments.get(name);
+            if (type == null) {
+                return null;
+            }
+            Class<?> outputType = CordPlanterBootstrap.argumentTypeOutputs.get(type);
+            Object val = this.getCommandContext().getArgument(name, outputType);
+            try {
+                switch (val) {
+                    case PlayerSelectorArgumentResolver p -> val = type.equals("player") ? p.resolve(stack).getFirst() : p.resolve(stack);
+                    case EntitySelectorArgumentResolver e -> val = type.equals("entity") ? e.resolve(stack).getFirst() : e.resolve(stack);
+                    default -> {}
+                }
+            } catch (CommandSyntaxException ignored) {
+            }
+            return val;
+        }
+        return null;
     }
 
     public boolean requires(CommandSourceStack stack) {
         currentLine = 0;
+        this.stack = stack;
         for (JsonElement element : commands) {
             JsonObject obj = element.getAsJsonObject();
             switch (obj.get("type").getAsString()) {
@@ -75,6 +123,13 @@ public class MethodContext {
             currentLine++;
         }
         return true;
+    }
+
+    public Object getValueAny(Object value) {
+        if (value instanceof JsonElement e) {
+            return this.getValue(e);
+        }
+        return value;
     }
 
     public Object getValue(JsonElement value) {
@@ -139,6 +194,7 @@ public class MethodContext {
     }
 
     public int executes(CommandContext<CommandSourceStack> context) {
+        this.stack = context.getSource();
         currentLine = 0;
         for (JsonElement element : commands) {
             JsonObject obj = element.getAsJsonObject();
@@ -170,9 +226,15 @@ public class MethodContext {
 
     public Function<JsonArray, Object> getExpression(JsonObject obj) {
         if (obj.has("from") && props.get(obj.get("from").getAsString()) != null) {
-            return switch (props.get(obj.get("from").getAsString())) {
+            Object toLookAt = getValue(obj.get("from"));
+            if (toLookAt instanceof String s) {
+                toLookAt = props.get(s);
+            }
+            return switch (toLookAt) {
                 case Player player -> new eu.sheepearrr.cordplanter.method.container.Player(player, this).getExpression(obj);
+                case Entity entity -> new eu.sheepearrr.cordplanter.method.container.Entity(entity, this).getExpression(obj);
                 case CommandSender sender -> new eu.sheepearrr.cordplanter.method.container.CommandSender(sender, this).getExpression(obj);
+                case Audience audience -> new eu.sheepearrr.cordplanter.method.container.Audience(audience, this).getExpression(obj);
                 case CommandSourceStack stack -> new eu.sheepearrr.cordplanter.method.container.CommandSourceStack(stack, this).getExpression(obj);
                 default -> null;
             };
@@ -210,6 +272,35 @@ public class MethodContext {
                         return this.getValue(args.get(1));
                     }
                 });
+                case "add" -> (args -> {
+                    if (args.get(0).isJsonPrimitive()) {
+                        if (args.get(0).getAsJsonPrimitive().isNumber()) {
+                            return this.getValue(args.get(0)) instanceof Double ? ((double) this.getValue(args.get(0))) + ((double) this.getValue(args.get(1))) : ((int) this.getValue(args.get(0))) + ((int) this.getValue(args.get(1)));
+                        } else if (args.get(0).getAsJsonPrimitive().isString()) {
+                            JsonPrimitive p = args.get(1).getAsJsonPrimitive();
+                            return ((String) this.getValue(args.get(0))) + (p.isString() ? p.getAsString() : (p.isBoolean() ? p.getAsBoolean() : (this.getValue(p) instanceof Double d ? d : (int) this.getValue(p))));
+                        }
+                    }
+                    return 0;
+                });
+                case "subtract" -> (args -> {
+                    if (args.get(0).isJsonPrimitive() && args.get(0).getAsJsonPrimitive().isNumber()) {
+                        return this.getValue(args.get(0)) instanceof Double ? ((double) this.getValue(args.get(0))) - ((double) this.getValue(args.get(1))) : ((int) this.getValue(args.get(0))) - ((int) this.getValue(args.get(1)));
+                    }
+                    return 0;
+                });
+                case "as" -> (args -> {
+                    Object toLookAt = getValue(obj.get("from"));
+                    if (toLookAt instanceof String s) {
+                        toLookAt = props.get(s);
+                    }
+                    return switch (toLookAt) {
+                        case JsonElement e -> this.getValue(e);
+                        default -> toLookAt;
+                    };
+                });
+                case "get_config_value" -> (args -> this.getConfigValue((String) this.getValue(args.get(0)), (String) this.getValue(args.get(1))));
+                case "get_config_value_from_shortcut" -> (args -> this.getConfigValueFromShortcut((String) this.getValue(args.get(0)), (String) this.getValue(args.get(1))));
                 default -> null;
             };
         }

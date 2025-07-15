@@ -9,6 +9,7 @@ import com.mojang.brigadier.arguments.*;
 import com.mojang.brigadier.builder.LiteralArgumentBuilder;
 import com.mojang.brigadier.builder.RequiredArgumentBuilder;
 import com.mojang.brigadier.tree.CommandNode;
+import eu.sheepearrr.cordplanter.config.Config;
 import eu.sheepearrr.cordplanter.util.EnchantmentBuilder;
 import eu.sheepearrr.cordplanter.method.MethodContext;
 import eu.sheepearrr.cordplanter.util.TextBuilder;
@@ -32,6 +33,7 @@ import net.kyori.adventure.key.Key;
 import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.event.ClickEvent;
 import net.kyori.adventure.text.event.HoverEvent;
+import net.kyori.adventure.text.format.NamedTextColor;
 import net.kyori.adventure.text.format.TextDecoration;
 import net.kyori.adventure.translation.GlobalTranslator;
 import net.kyori.adventure.translation.TranslationStore;
@@ -63,7 +65,9 @@ public class CordPlanterBootstrap implements PluginBootstrap {
     public Map<String, Boolean> settings = new HashMap<>();
     public Map<String, Object> internalVariables = new HashMap<>();
     public List<TranslationStuffHolder> translations = new ArrayList<>();
+    public Map<String, Config> configs = new HashMap<>();
     public static TranslationStore.StringBased<MessageFormat> store = TranslationStore.messageFormat(Key.key("cordplanter", "store"));
+    public static String dataDirectory;
     private static final Map<String, ArgumentType<?>> argumentTypes = Map.ofEntries(
             Map.entry("string", StringArgumentType.string()),
             Map.entry("word", StringArgumentType.word()),
@@ -90,7 +94,7 @@ public class CordPlanterBootstrap implements PluginBootstrap {
             Map.entry("double", Double.class),
             Map.entry("uuid", UUID.class),
             Map.entry("world", World.class),
-            Map.entry("entity", Entity.class),
+            Map.entry("entity", EntitySelectorArgumentResolver.class),
             Map.entry("entities", EntitySelectorArgumentResolver.class),
             Map.entry("time", Integer.class),
             Map.entry("player", PlayerSelectorArgumentResolver.class),
@@ -106,11 +110,13 @@ public class CordPlanterBootstrap implements PluginBootstrap {
     @Override
     public void bootstrap(BootstrapContext bootstrapContext) {
         GlobalTranslator.translator().addSource(store);
+        Map<String, List<JsonObject>> configDefs = new HashMap<>();
         try {
             Gson gson = new Gson();
             INSTANCE = this;
-            File workshopsDirectory = new File(bootstrapContext.getDataDirectory().toString() + "/workspaces");
             File dataDir = new File(bootstrapContext.getDataDirectory().toString());
+            dataDirectory = dataDir.getPath();
+            File workshopsDirectory = new File(dataDir.getPath() + "/workspaces");
             File dataFile = new File(dataDir.getPath() + "/data.json");
             if (!dataDir.exists()) {
                 dataDir.mkdir();
@@ -187,9 +193,22 @@ public class CordPlanterBootstrap implements PluginBootstrap {
                                             }
                                             enchants.put(id, elementObject.get("values").getAsJsonObject());
                                         }
-                                        case "command" -> commands.put(elementObject.get("name").getAsString(), elementObject);
+                                        case "command" -> {
+                                            elementObject.addProperty("namespace", jsObj.get("id").getAsString());
+                                            commands.put(elementObject.get("name").getAsString(), elementObject);
+                                        }
                                         case "tag" -> {
 
+                                        }
+                                        case "config" -> {
+                                            String namespace = jsObj.get("id").getAsString();
+                                            List<JsonObject> newValue;
+                                            if (configDefs.containsKey(namespace)) {
+                                                newValue = configDefs.get(namespace);
+                                            } else {
+                                                newValue = new ArrayList<JsonObject>(List.of(elementObject));
+                                            }
+                                            configDefs.put(namespace, newValue);
                                         }
                                         default -> {}
                                     }
@@ -222,7 +241,7 @@ public class CordPlanterBootstrap implements PluginBootstrap {
                         Commands.literal("workspace")
                                 .requires(stack -> stack.getSender().hasPermission("cordplanter.workspace"))
                                 .then(Commands.literal("list").requires(stack -> stack.getSender().hasPermission("cordplanter.workspace.list")).executes(stack -> {
-                                    Component comp = Component.empty().append(Component.text("ℹ").color(TextBuilder.presetColors.get("dark_green"))).append(Component.translatable("command.cordplanter.workspace.list.1").append(Component.text((enabledWorkspaces.size() + disabledWorkspaces.size()))).append(Component.translatable("command.cordplanter.workspace.list.2")));
+                                    Component comp = Component.empty().append(Component.text("ℹ").color(NamedTextColor.DARK_GREEN)).append(Component.translatable("command.cordplanter.workspace.list.1").append(Component.text((enabledWorkspaces.size() + disabledWorkspaces.size()))).append(Component.translatable("command.cordplanter.workspace.list.2")));
                                     Map<String, ArrayList<Entry<String, WorkspaceProperties>>> versions = new HashMap<>();
                                     for (Entry<String, WorkspaceProperties> entry : enabledWorkspaces.entrySet()) {
                                         String format = entry.getValue().format;
@@ -245,7 +264,7 @@ public class CordPlanterBootstrap implements PluginBootstrap {
                                         versions.put(format, new ArrayList<>(List.of(entry)));
                                     }
                                     for (Entry<String, ArrayList<Entry<String, WorkspaceProperties>>> format : versions.entrySet()) {
-                                        comp = comp.append(Component.text("\n").append(Component.text(format.getKey()).color(TextBuilder.presetColors.get(format.getKey().equals(currentFormat) ? "green" : (this.settings.get("require_current_format") ? "dark_red" : "red")))).append(Component.text(":\n    ")));
+                                        comp = comp.append(Component.text("\n").append(Component.text(format.getKey()).color(format.getKey().equals(currentFormat) ? NamedTextColor.GREEN : (this.settings.get("require_current_format") ? NamedTextColor.DARK_RED : NamedTextColor.RED))).append(Component.text(":\n    ")));
                                         boolean i = false;
                                         int j = 0;
                                         Component prevComp = Component.empty();
@@ -257,7 +276,7 @@ public class CordPlanterBootstrap implements PluginBootstrap {
                                                 prevComp = prevComp.append(Component.text("\n    "));
                                                 j = 0;
                                             }
-                                            prevComp = prevComp.append(Component.text(entry.getValue().getDisplayName(entry.getKey())).color(TextBuilder.presetColors.get(disabledWorkspaces.containsKey(entry.getKey()) ? "red" : "green")));
+                                            prevComp = prevComp.append(Component.text(entry.getValue().getDisplayName(entry.getKey())).color(disabledWorkspaces.containsKey(entry.getKey()) ? NamedTextColor.RED : NamedTextColor.GREEN));
                                             i = true;
                                             j++;
                                         }
@@ -278,20 +297,20 @@ public class CordPlanterBootstrap implements PluginBootstrap {
                                         enabledWorkspaces.remove(name);
                                         stack.getSource().getSender().sendMessage(
                                                 Component.text()
-                                                        .append(Component.text("CordPlanter").color(TextBuilder.presetColors.get("red")).decoration(TextDecoration.BOLD, TextDecoration.State.TRUE))
-                                                        .append(Component.text(" | ").color(TextBuilder.presetColors.get("dark_gray")))
-                                                        .append(Component.translatable("command.cordplanter.workspace.disable.1").color(TextBuilder.presetColors.get("gray")))
-                                                        .append(Component.text(name).color(TextBuilder.presetColors.get("red")))
-                                                        .append(Component.translatable("command.cordplanter.workspace.disable.2").color(TextBuilder.presetColors.get("gray")))
-                                                        .append(Component.translatable("command.cordplanter.workspace.warning").color(TextBuilder.presetColors.get("dark_gray")))
+                                                        .append(Component.text("CordPlanter").color(NamedTextColor.RED).decoration(TextDecoration.BOLD, TextDecoration.State.TRUE))
+                                                        .append(Component.text(" | ").color(NamedTextColor.DARK_GRAY))
+                                                        .append(Component.translatable("command.cordplanter.workspace.disable.1").color(NamedTextColor.GRAY))
+                                                        .append(Component.text(name).color(NamedTextColor.RED))
+                                                        .append(Component.translatable("command.cordplanter.workspace.disable.2").color(NamedTextColor.GRAY))
+                                                        .append(Component.translatable("command.cordplanter.workspace.warning").color(NamedTextColor.DARK_GRAY))
                                         );
                                         return Command.SINGLE_SUCCESS;
                                     }
                                     stack.getSource().getSender().sendMessage(
                                             Component.text()
-                                                    .append(Component.text("CordPlanter").color(TextBuilder.presetColors.get("red")).decoration(TextDecoration.BOLD, TextDecoration.State.TRUE))
-                                                    .append(Component.text(" | ").color(TextBuilder.presetColors.get("dark_gray")))
-                                                    .append(Component.translatable("command.cordplanter.workspace.disable.error").color(TextBuilder.presetColors.get("gray")))
+                                                    .append(Component.text("CordPlanter").color(NamedTextColor.RED).decoration(TextDecoration.BOLD, TextDecoration.State.TRUE))
+                                                    .append(Component.text(" | ").color(NamedTextColor.DARK_GRAY))
+                                                    .append(Component.translatable("command.cordplanter.workspace.disable.error").color(NamedTextColor.GRAY))
                                     );
                                     return -1;
                                 })))
@@ -307,20 +326,20 @@ public class CordPlanterBootstrap implements PluginBootstrap {
                                         disabledWorkspaces.remove(name);
                                         stack.getSource().getSender().sendMessage(
                                                 Component.text()
-                                                        .append(Component.text("CordPlanter").color(TextBuilder.presetColors.get("red")).decoration(TextDecoration.BOLD, TextDecoration.State.TRUE))
-                                                        .append(Component.text(" | ").color(TextBuilder.presetColors.get("dark_gray")))
-                                                        .append(Component.translatable("command.cordplanter.workspace.enable.1").color(TextBuilder.presetColors.get("gray")))
-                                                        .append(Component.text(name).color(TextBuilder.presetColors.get("green")))
-                                                        .append(Component.translatable("command.cordplanter.workspace.enable.2").color(TextBuilder.presetColors.get("gray")))
-                                                        .append(Component.translatable("command.cordplanter.workspace.warning").color(TextBuilder.presetColors.get("dark_gray")))
+                                                        .append(Component.text("CordPlanter").color(NamedTextColor.RED).decoration(TextDecoration.BOLD, TextDecoration.State.TRUE))
+                                                        .append(Component.text(" | ").color(NamedTextColor.DARK_GRAY))
+                                                        .append(Component.translatable("command.cordplanter.workspace.enable.1").color(NamedTextColor.GRAY))
+                                                        .append(Component.text(name).color(NamedTextColor.GREEN))
+                                                        .append(Component.translatable("command.cordplanter.workspace.enable.2").color(NamedTextColor.GRAY))
+                                                        .append(Component.translatable("command.cordplanter.workspace.warning").color(NamedTextColor.DARK_GRAY))
                                         );
                                         return Command.SINGLE_SUCCESS;
                                     }
                                     stack.getSource().getSender().sendMessage(
                                             Component.text()
-                                                    .append(Component.text("CordPlanter").color(TextBuilder.presetColors.get("red")).decoration(TextDecoration.BOLD, TextDecoration.State.TRUE))
-                                                    .append(Component.text(" | ").color(TextBuilder.presetColors.get("dark_gray")))
-                                                    .append(Component.translatable("command.cordplanter.workspace.enable.error").color(TextBuilder.presetColors.get("gray")))
+                                                    .append(Component.text("CordPlanter").color(NamedTextColor.RED).decoration(TextDecoration.BOLD, TextDecoration.State.TRUE))
+                                                    .append(Component.text(" | ").color(NamedTextColor.DARK_GRAY))
+                                                    .append(Component.translatable("command.cordplanter.workspace.enable.error").color(NamedTextColor.GRAY))
                                     );
                                     return -1;
                                 })))
@@ -334,21 +353,21 @@ public class CordPlanterBootstrap implements PluginBootstrap {
                                     if (settings.containsKey(setting)) {
                                         stack.getSource().getSender().sendMessage(
                                                 Component.text()
-                                                        .append(Component.text("CordPlanter").color(TextBuilder.presetColors.get("red")).decoration(TextDecoration.BOLD, TextDecoration.State.TRUE))
-                                                        .append(Component.text(" | ").color(TextBuilder.presetColors.get("dark_gray")))
+                                                        .append(Component.text("CordPlanter").color(NamedTextColor.RED).decoration(TextDecoration.BOLD, TextDecoration.State.TRUE))
+                                                        .append(Component.text(" | ").color(NamedTextColor.DARK_GRAY))
                                                         .append(Component.translatable("command.cordplanter.workspace.settings.get.0"))
-                                                        .append(Component.text(setting).color(TextBuilder.presetColors.get("red")))
-                                                        .append(Component.translatable("command.cordplanter.workspace.settings.get.1").color(TextBuilder.presetColors.get("gray")))
-                                                        .append(Component.translatable(settings.get(setting) ? "command.cordplanter.workspace.settings.get.enabled" : "command.cordplanter.workspace.settings.get.disabled").color(TextBuilder.presetColors.get(settings.get(setting) ? "green" : "red")))
-                                                        .append(Component.translatable("command.cordplanter.workspace.settings.get.2").color(TextBuilder.presetColors.get("gray")))
+                                                        .append(Component.text(setting).color(NamedTextColor.RED))
+                                                        .append(Component.translatable("command.cordplanter.workspace.settings.get.1").color(NamedTextColor.GRAY))
+                                                        .append(Component.translatable(settings.get(setting) ? "command.cordplanter.workspace.settings.get.enabled" : "command.cordplanter.workspace.settings.get.disabled").color(settings.get(setting) ? NamedTextColor.GREEN : NamedTextColor.RED))
+                                                        .append(Component.translatable("command.cordplanter.workspace.settings.get.2").color(NamedTextColor.GRAY))
                                         );
                                         return Command.SINGLE_SUCCESS;
                                     } else {
                                         stack.getSource().getSender().sendMessage(
                                                 Component.text()
-                                                        .append(Component.text("CordPlanter").color(TextBuilder.presetColors.get("red")).decoration(TextDecoration.BOLD, TextDecoration.State.TRUE))
-                                                        .append(Component.text(" | ").color(TextBuilder.presetColors.get("dark_gray")))
-                                                        .append(Component.translatable("command.cordplanter.workspace.settings.error").color(TextBuilder.presetColors.get("gray")))
+                                                        .append(Component.text("CordPlanter").color(NamedTextColor.RED).decoration(TextDecoration.BOLD, TextDecoration.State.TRUE))
+                                                        .append(Component.text(" | ").color(NamedTextColor.DARK_GRAY))
+                                                        .append(Component.translatable("command.cordplanter.workspace.settings.error").color(NamedTextColor.GRAY))
                                         );
                                     }
                                     return -1;
@@ -364,31 +383,31 @@ public class CordPlanterBootstrap implements PluginBootstrap {
                                         if (settings.get(setting) == state) {
                                             stack.getSource().getSender().sendMessage(
                                                     Component.text()
-                                                            .append(Component.text("CordPlanter").color(TextBuilder.presetColors.get("red")).decoration(TextDecoration.BOLD, TextDecoration.State.TRUE))
-                                                            .append(Component.text(" | ").color(TextBuilder.presetColors.get("dark_gray")))
+                                                            .append(Component.text("CordPlanter").color(NamedTextColor.RED).decoration(TextDecoration.BOLD, TextDecoration.State.TRUE))
+                                                            .append(Component.text(" | ").color(NamedTextColor.DARK_GRAY))
                                                             .append(Component.translatable("command.cordplanter.workspace.settings.set.already.0"))
-                                                            .append(Component.text(setting).color(TextBuilder.presetColors.get(state ? "green" : "red")))
-                                                            .append(Component.translatable("command.cordplanter.workspace.settings.set.already.1").color(TextBuilder.presetColors.get("gray")))
+                                                            .append(Component.text(setting).color(state ? NamedTextColor.GREEN : NamedTextColor.RED))
+                                                            .append(Component.translatable("command.cordplanter.workspace.settings.set.already.1").color(NamedTextColor.GRAY))
                                             );
                                         } else {
                                             settings.put(setting, state);
                                             stack.getSource().getSender().sendMessage(
                                                     Component.text()
-                                                            .append(Component.text("CordPlanter").color(TextBuilder.presetColors.get("red")).decoration(TextDecoration.BOLD, TextDecoration.State.TRUE))
-                                                            .append(Component.text(" | ").color(TextBuilder.presetColors.get("dark_gray")))
+                                                            .append(Component.text("CordPlanter").color(NamedTextColor.RED).decoration(TextDecoration.BOLD, TextDecoration.State.TRUE))
+                                                            .append(Component.text(" | ").color(NamedTextColor.DARK_GRAY))
                                                             .append(Component.translatable("command.cordplanter.workspace.settings.set.0"))
-                                                            .append(Component.text(setting).color(TextBuilder.presetColors.get("red")))
-                                                            .append(Component.translatable("command.cordplanter.workspace.settings.set.1").color(TextBuilder.presetColors.get("gray")))
-                                                            .append(Component.translatable(state ? "command.cordplanter.workspace.settings.set.enabled" : "command.cordplanter.workspace.settings.set.disabled").color(TextBuilder.presetColors.get(state ? "green" : "red")))
-                                                            .append(Component.translatable("command.cordplanter.workspace.settings.set.2").color(TextBuilder.presetColors.get("gray")))
+                                                            .append(Component.text(setting).color(NamedTextColor.RED))
+                                                            .append(Component.translatable("command.cordplanter.workspace.settings.set.1").color(NamedTextColor.GRAY))
+                                                            .append(Component.translatable(state ? "command.cordplanter.workspace.settings.set.enabled" : "command.cordplanter.workspace.settings.set.disabled").color(state ? NamedTextColor.GREEN : NamedTextColor.RED))
+                                                            .append(Component.translatable("command.cordplanter.workspace.settings.set.2").color(NamedTextColor.GRAY))
                                             );
                                             if (setting.equals("allow_granting_operator_status") && state) {
                                                 stack.getSource().getSender().sendMessage(
                                                         Component.text()
-                                                                .append(Component.text("CordPlanter").color(TextBuilder.presetColors.get("red")).decoration(TextDecoration.BOLD, TextDecoration.State.TRUE))
-                                                                .append(Component.text(" | ").color(TextBuilder.presetColors.get("dark_gray")))
-                                                                .append(Component.translatable("command.cordplanter.workspace.settings.set.operator.main").color(TextBuilder.presetColors.get("gray")))
-                                                                .append(Component.translatable("command.cordplanter.workspace.settings.set.operator.reset").hoverEvent(HoverEvent.showText(Component.translatable("command.cordplanter.workspace.settings.set.operator.reset.hover").color(TextBuilder.presetColors.get("red")).decoration(TextDecoration.BOLD, TextDecoration.State.TRUE))).color(TextBuilder.presetColors.get("red")).decoration(TextDecoration.BOLD, TextDecoration.State.TRUE).clickEvent(ClickEvent.runCommand("workspace settings reset allow_granting_operator_status")))
+                                                                .append(Component.text("CordPlanter").color(NamedTextColor.RED).decoration(TextDecoration.BOLD, TextDecoration.State.TRUE))
+                                                                .append(Component.text(" | ").color(NamedTextColor.DARK_GRAY))
+                                                                .append(Component.translatable("command.cordplanter.workspace.settings.set.operator.main").color(NamedTextColor.GRAY))
+                                                                .append(Component.translatable("command.cordplanter.workspace.settings.set.operator.reset").hoverEvent(HoverEvent.showText(Component.translatable("command.cordplanter.workspace.settings.set.operator.reset.hover").color(NamedTextColor.RED).decoration(TextDecoration.BOLD, TextDecoration.State.TRUE))).color(NamedTextColor.RED).decoration(TextDecoration.BOLD, TextDecoration.State.TRUE).clickEvent(ClickEvent.runCommand("workspace settings reset allow_granting_operator_status")))
                                                 );
                                                 CordPlanter.LOGGER.warn("\n===========================================================================================================================================================\n\n!!! CRITICAL WARNING !!!\n\nCordPlanter was configured to grant workspaces the power to GRANT OPERATOR STATUS to any Player, etc. This can be used as a force-op exploit, even through harmless looking stuff like text replacement.\nOnly enable this option if you really need it.\nPlease run \"workspace settings reset allow_granting_operator_status\" to reset this option.\n    - Sheepearrr, owner of CordPlanter\n\n===========================================================================================================================================================\nTranslations: https://github.com/Sheepearrrrrrrrrr/Data/tree/main/cordplanter/translations/operator_warning");
                                             }
@@ -397,9 +416,9 @@ public class CordPlanterBootstrap implements PluginBootstrap {
                                     } else {
                                         stack.getSource().getSender().sendMessage(
                                                 Component.text()
-                                                        .append(Component.text("CordPlanter").color(TextBuilder.presetColors.get("red")).decoration(TextDecoration.BOLD, TextDecoration.State.TRUE))
-                                                        .append(Component.text(" | ").color(TextBuilder.presetColors.get("dark_gray")))
-                                                        .append(Component.translatable("command.cordplanter.workspace.settings.error").color(TextBuilder.presetColors.get("gray")))
+                                                        .append(Component.text("CordPlanter").color(NamedTextColor.RED).decoration(TextDecoration.BOLD, TextDecoration.State.TRUE))
+                                                        .append(Component.text(" | ").color(NamedTextColor.DARK_GRAY))
+                                                        .append(Component.translatable("command.cordplanter.workspace.settings.error").color(NamedTextColor.GRAY))
                                         );
                                     }
                                     return -1;
@@ -411,9 +430,9 @@ public class CordPlanterBootstrap implements PluginBootstrap {
                                     }
                                     command.getSource().getSender().sendMessage(
                                             Component.text()
-                                                    .append(Component.text("CordPlanter").color(TextBuilder.presetColors.get("red")).decoration(TextDecoration.BOLD, TextDecoration.State.TRUE))
-                                                    .append(Component.text(" | ").color(TextBuilder.presetColors.get("dark_gray")))
-                                                    .append(Component.translatable("command.cordplanter.workspace.settings.reset").color(TextBuilder.presetColors.get("gray")))
+                                                    .append(Component.text("CordPlanter").color(NamedTextColor.RED).decoration(TextDecoration.BOLD, TextDecoration.State.TRUE))
+                                                    .append(Component.text(" | ").color(NamedTextColor.DARK_GRAY))
+                                                    .append(Component.translatable("command.cordplanter.workspace.settings.reset").color(NamedTextColor.GRAY))
                                     );
                                     return Command.SINGLE_SUCCESS;
                                 }).then(Commands.argument("setting", StringArgumentType.string()).suggests((context, builder) -> {
@@ -431,19 +450,19 @@ public class CordPlanterBootstrap implements PluginBootstrap {
                                         }
                                         command.getSource().getSender().sendMessage(
                                                 Component.text()
-                                                        .append(Component.text("CordPlanter").color(TextBuilder.presetColors.get("red")).decoration(TextDecoration.BOLD, TextDecoration.State.TRUE))
-                                                        .append(Component.text(" | ").color(TextBuilder.presetColors.get("dark_gray")))
-                                                        .append(Component.translatable("command.cordplanter.workspace.settings.reset.success.1").color(TextBuilder.presetColors.get("gray")))
-                                                        .append(Component.text(setting).color(TextBuilder.presetColors.get("red")))
-                                                        .append(Component.translatable("command.cordplanter.workspace.settings.reset.success.2").color(TextBuilder.presetColors.get("gray")))
+                                                        .append(Component.text("CordPlanter").color(NamedTextColor.RED).decoration(TextDecoration.BOLD, TextDecoration.State.TRUE))
+                                                        .append(Component.text(" | ").color(NamedTextColor.DARK_GRAY))
+                                                        .append(Component.translatable("command.cordplanter.workspace.settings.reset.success.1").color(NamedTextColor.GRAY))
+                                                        .append(Component.text(setting).color(NamedTextColor.RED))
+                                                        .append(Component.translatable("command.cordplanter.workspace.settings.reset.success.2").color(NamedTextColor.GRAY))
                                         );
                                         return Command.SINGLE_SUCCESS;
                                     }
                                     command.getSource().getSender().sendMessage(
                                             Component.text()
-                                                    .append(Component.text("CordPlanter").color(TextBuilder.presetColors.get("red")).decoration(TextDecoration.BOLD, TextDecoration.State.TRUE))
-                                                    .append(Component.text(" | ").color(TextBuilder.presetColors.get("dark_gray")))
-                                                    .append(Component.translatable("command.cordplanter.workspace.settings.error").color(TextBuilder.presetColors.get("gray")))
+                                                    .append(Component.text("CordPlanter").color(NamedTextColor.RED).decoration(TextDecoration.BOLD, TextDecoration.State.TRUE))
+                                                    .append(Component.text(" | ").color(NamedTextColor.DARK_GRAY))
+                                                    .append(Component.translatable("command.cordplanter.workspace.settings.error").color(NamedTextColor.GRAY))
                                     );
                                     return -1;
                                 }))))
@@ -460,7 +479,7 @@ public class CordPlanterBootstrap implements PluginBootstrap {
                                         Map.entry("executer", stack.getExecutor()),
                                         Map.entry("source_stack", stack)
                                 ));
-                                MethodContext context = new MethodContext(entry.getValue().getAsJsonArray("requires").asList(), props);
+                                MethodContext context = new MethodContext(entry.getValue().getAsJsonArray("requires").asList(), props, entry.getValue().get("namespace").getAsString());
                                 return context.requires(stack);
                             });
                         }
@@ -472,7 +491,7 @@ public class CordPlanterBootstrap implements PluginBootstrap {
                                         Map.entry("source_stack", commandContextStack.getSource()),
                                         Map.entry("{<context", commandContextStack)
                                 ));
-                                MethodContext context = new MethodContext(entry.getValue().getAsJsonArray("executes").asList(), props);
+                                MethodContext context = new MethodContext(entry.getValue().getAsJsonArray("executes").asList(), props, entry.getValue().get("namespace").getAsString());
                                 return context.executes(commandContextStack);
                             });
                         }
@@ -536,6 +555,13 @@ public class CordPlanterBootstrap implements PluginBootstrap {
                 store.registerAll(holder.locale, holder.translations);
             }
         }
+        if (this.settings.get("allow_workspace_configs")) {
+            if (this.settings.get("output_registering_phases")) CordPlanter.LOGGER.info("Adding and reading workspace configs.");
+            Config.createConfigFolder();
+            for (Map.Entry<String, List<JsonObject>> configStack : configDefs.entrySet()) {
+                this.configs.put(configStack.getKey(), new Config(configStack.getKey(), configStack.getValue()));
+            }
+        }
     }
 
     private CommandNode<CommandSourceStack> then(JsonObject obj, Map<String, String> prevArgs) {
@@ -550,7 +576,7 @@ public class CordPlanterBootstrap implements PluginBootstrap {
                         Map.entry("executor", stack.getExecutor()),
                         Map.entry("source_stack", stack)
                 ));
-                MethodContext context = new MethodContext(obj.getAsJsonArray("requires").asList(), props);
+                MethodContext context = new MethodContext(obj.getAsJsonArray("requires").asList(), props, obj.get("namespace").getAsString());
                 return context.requires(stack);
             });
         }
@@ -563,7 +589,7 @@ public class CordPlanterBootstrap implements PluginBootstrap {
                         Map.entry("{<context", stack),
                         Map.entry("source_stack", stack.getSource())
                 ));
-                MethodContext context = new MethodContext(obj.getAsJsonArray("executes").asList(), props);
+                MethodContext context = new MethodContext(obj.getAsJsonArray("executes").asList(), props, obj.get("namespace").getAsString());
                 return context.executes(stack);
             });
         }

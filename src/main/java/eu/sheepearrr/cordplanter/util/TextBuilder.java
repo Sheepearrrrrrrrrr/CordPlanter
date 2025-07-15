@@ -13,6 +13,7 @@ import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.TranslatableComponent;
 import net.kyori.adventure.text.event.ClickEvent;
 import net.kyori.adventure.text.event.HoverEvent;
+import net.kyori.adventure.text.format.NamedTextColor;
 import net.kyori.adventure.text.format.TextColor;
 import net.kyori.adventure.text.format.TextDecoration;
 import org.jetbrains.annotations.Nullable;
@@ -24,24 +25,6 @@ import java.util.Map;
 import java.util.UUID;
 
 public class TextBuilder {
-    public static final Map<String, TextColor> presetColors = Map.ofEntries(
-            Map.entry("black", TextColor.color(0, 0, 0)),
-            Map.entry("dark_blue", TextColor.color(0, 0, 170)),
-            Map.entry("dark_green", TextColor.color(0, 170, 0)),
-            Map.entry("dark_aqua", TextColor.color(0, 170, 170)),
-            Map.entry("dark_red", TextColor.color(170, 0, 0)),
-            Map.entry("dark_purple", TextColor.color(170, 0, 170)),
-            Map.entry("gold", TextColor.color(255, 170, 0)),
-            Map.entry("gray", TextColor.color(170, 170, 170)),
-            Map.entry("dark_gray", TextColor.color(85, 85, 85)),
-            Map.entry("blue", TextColor.color(85, 85, 255)),
-            Map.entry("green", TextColor.color(85, 255, 85)),
-            Map.entry("aqua", TextColor.color(85, 255, 255)),
-            Map.entry("red", TextColor.color(255, 85, 85)),
-            Map.entry("light_purple", TextColor.color(255, 85, 255)),
-            Map.entry("yellow", TextColor.color(255, 255, 85)),
-            Map.entry("white", TextColor.color(255, 255, 255))
-    );
 
     public static String textReplacement(JsonObject obj, String text, MethodContext mContext) {
         if (text.contains("$#") && CordPlanterBootstrap.INSTANCE.settings.get("allow_text_replacement")) {
@@ -262,8 +245,8 @@ public class TextBuilder {
                     r = Integer.parseInt(hexCode.substring(0, 2), 16);
                     g = Integer.parseInt(hexCode.substring(2, 4), 16);
                     b = Integer.parseInt(hexCode.substring(4), 16);
-                } else if (presetColors.containsKey(colorStr)) {
-                    TextColor color = presetColors.get(colorStr);
+                } else if (NamedTextColor.NAMES.value(colorStr) != null) {
+                    TextColor color = NamedTextColor.NAMES.value(colorStr);
                     r = color.red();
                     g = color.green();
                     b = color.blue();
@@ -334,11 +317,11 @@ public class TextBuilder {
             JsonObject clickEventObject = jsonObj.getAsJsonObject("click_event");
             comp = switch (clickEventObject.get("type").getAsString()) {
                 case "change_page" -> {
-                    String page;
+                    int page;
                     if (clickEventObject.get("page").getAsJsonPrimitive().isString()) {
-                        page = clickEventObject.get("page").getAsString();
+                        page = Integer.parseInt(clickEventObject.get("page").getAsString());
                     } else if (clickEventObject.get("page").getAsJsonPrimitive().isNumber()) {
-                        page = String.valueOf(clickEventObject.get("page").getAsInt());
+                        page = clickEventObject.get("page").getAsInt();
                     } else {
                         parseError(jsonObj);
                         yield Component.empty();

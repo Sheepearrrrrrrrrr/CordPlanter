@@ -270,14 +270,14 @@ public class Audience implements BasicMethodContainer {
                                 Map.entry("uuid", uuid),
                                 Map.entry("audience", aud)
                         );
-                        MethodContext context = new MethodContext(optionsObject.get("on_success").getAsJsonArray().asList(), props);
+                        MethodContext context = new MethodContext(optionsObject.get("on_success").getAsJsonArray().asList(), props, null);
                         context.resourceCallback();
                     }, (uuid, aud) -> {
                         Map<String, Object> props = Map.ofEntries(
                                 Map.entry("uuid", uuid),
                                 Map.entry("audience", aud)
                         );
-                        MethodContext context = new MethodContext(optionsObject.get("on_failure").getAsJsonArray().asList(), props);
+                        MethodContext context = new MethodContext(optionsObject.get("on_failure").getAsJsonArray().asList(), props, null);
                         context.resourceCallback();
                     }));
                 }

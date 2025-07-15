@@ -1,92 +1,49 @@
-[21:10:58] [ServerMain/INFO]: [bootstrap] Running Java 21 (OpenJDK 64-Bit Server VM 21.0.7+6-LTS; Eclipse Adoptium Temurin-21.0.7+6) on Linux 6.15.2-arch1-1 (amd64)
-[21:10:58] [ServerMain/INFO]: [bootstrap] Loading Paper 1.21.6-33-main@aa6ee44 (2025-06-24T15:21:35Z) for Minecraft 1.21.6
-[21:10:59] [ServerMain/INFO]: [PluginInitializerManager] Initializing plugins...
-[21:10:59] [ServerMain/INFO]: [PluginInitializerManager] Initialized 1 plugin
-[21:10:59] [ServerMain/INFO]: [PluginInitializerManager] Paper plugins (1):
+[21:44:49] [ServerMain/INFO]: [bootstrap] Running Java 21 (OpenJDK 64-Bit Server VM 21.0.7+6-LTS; Eclipse Adoptium Temurin-21.0.7+6) on Linux 6.15.2-arch1-1 (amd64)
+[21:44:49] [ServerMain/INFO]: [bootstrap] Loading Paper 1.21.7-28-main@94d60e1 (2025-07-14T21:13:45Z) for Minecraft 1.21.7
+[21:44:49] [ServerMain/INFO]: [PluginInitializerManager] Initializing plugins...
+[21:44:50] [ServerMain/INFO]: [PluginInitializerManager] Initialized 1 plugin
+[21:44:50] [ServerMain/INFO]: [PluginInitializerManager] Paper plugins (1):
  - CordPlanter (1.0.0-R.0-SNAPSHOT)
-[21:11:00] [ServerMain/INFO]: [cordplanter] Registering workspaces.
-[21:11:00] [ServerMain/INFO]: [cordplanter] Registering custom enchantments.
-[21:11:00] [ServerMain/INFO]: [cordplanter] Registering translations.
-[21:11:03] [ServerMain/INFO]: Environment: Environment[sessionHost=https://sessionserver.mojang.com, servicesHost=https://api.minecraftservices.com, name=PROD]
-[21:11:03] [Worker-Main-3/INFO]: [cordplanter] Register workspace command.
-[21:11:03] [Worker-Main-3/INFO]: [cordplanter] Registering custom commands.
-[21:11:03] [ServerMain/INFO]: Loaded 1407 recipes
-[21:11:03] [ServerMain/INFO]: Loaded 1520 advancements
-[21:11:04] [ServerMain/INFO]: [ca.spottedleaf.dataconverter.minecraft.datatypes.MCTypeRegistry] Initialising converters for DataConverter...
-[21:11:04] [ServerMain/INFO]: [ca.spottedleaf.dataconverter.minecraft.datatypes.MCTypeRegistry] Finished initialising converters for DataConverter in 218.4ms
-[21:11:04] [Server thread/INFO]: Starting minecraft server version 1.21.6
-[21:11:04] [Server thread/INFO]: Loading properties
-[21:11:04] [Server thread/INFO]: This server is running Paper version 1.21.6-33-main@aa6ee44 (2025-06-24T15:21:35Z) (Implementing API version 1.21.6-R0.1-SNAPSHOT)
-[21:11:04] [Server thread/INFO]: [spark] This server bundles the spark profiler. For more information please visit https://docs.papermc.io/paper/profiling
-[21:11:04] [Server thread/INFO]: Server Ping Player Sample Count: 12
-[21:11:04] [Server thread/INFO]: Using 4 threads for Netty based IO
-[21:11:04] [Server thread/INFO]: [MoonriseCommon] Paper is using 4 worker threads, 1 I/O threads
-[21:11:04] [Server thread/INFO]: [ChunkTaskScheduler] Chunk system is using population gen parallelism: true
-[21:11:04] [Server thread/INFO]: Default game type: SURVIVAL
-[21:11:04] [Server thread/INFO]: Generating keypair
-[21:11:04] [Server thread/INFO]: Starting Minecraft server on *:10470
-[21:11:04] [Server thread/INFO]: Using epoll channel type
-[21:11:04] [Server thread/INFO]: Paper: Using libdeflate (Linux x86_64) compression from Velocity.
-[21:11:04] [Server thread/INFO]: Paper: Using OpenSSL 3.x.x (Linux x86_64) cipher from Velocity.
-[21:11:04] [Server thread/INFO]: [CordPlanter] Loading server plugin CordPlanter v1.0.0-R.0-SNAPSHOT
-[21:11:04] [Server thread/INFO]: Server permissions file permissions.yml is empty, ignoring it
-[21:11:04] [Server thread/INFO]: Preparing level "world"
-[21:11:05] [Server thread/INFO]: Preparing start region for dimension minecraft:overworld
-[21:11:05] [Server thread/INFO]: Preparing spawn area: 0%
-[21:11:05] [Server thread/INFO]: Preparing spawn area: 42%
-[21:11:05] [Server thread/INFO]: Time elapsed: 529 ms
-[21:11:05] [Server thread/INFO]: Preparing start region for dimension minecraft:the_nether
-[21:11:05] [Server thread/INFO]: Preparing spawn area: 0%
-[21:11:05] [Server thread/INFO]: Time elapsed: 54 ms
-[21:11:05] [Server thread/INFO]: Preparing start region for dimension minecraft:the_end
-[21:11:05] [Server thread/INFO]: Preparing spawn area: 0%
-[21:11:05] [Server thread/INFO]: Time elapsed: 39 ms
-[21:11:05] [Server thread/INFO]: [CordPlanter] Enabling CordPlanter v1.0.0-R.0-SNAPSHOT
-[21:11:05] [Server thread/INFO]: [spark] Starting background profiler...
-[21:11:05] [Server thread/INFO]: Done preparing level "world" (1.099s)
-[21:11:05] [Server thread/INFO]: Running delayed init tasks
-[21:11:05] [Server thread/INFO]: Done (7.341s)! For help, type "help"
-[21:11:06] [User Authenticator #0/INFO]: UUID of player Sheepearrr is 486329f7-63e4-4211-8dcf-b9f424908750
-[21:11:06] [Server thread/INFO]: Sheepearrr joined the game
-[21:11:06] [Server thread/INFO]: Sheepearrr[IP hidden] logged in with entity id 4 at ([world]-190.8358685664602, 113.37145655932504, 203.27879881528952)
-[21:11:13] [Server thread/INFO]: Sheepearrr issued server command: /workspace list
-[21:11:18] [Server thread/INFO]: Sheepearrr issued server command: /workspace settings reset
-[21:11:24] [Thread-0/WARN]: java.lang.Throwable: Server stopped
-[21:11:24] [Thread-0/WARN]: 	at io.papermc.paper.util.TraceUtil.dumpTraceForThread(TraceUtil.java:16)
-[21:11:24] [Thread-0/WARN]: 	at net.minecraft.server.MinecraftServer.safeShutdown(MinecraftServer.java:1099)
-[21:11:24] [Thread-0/WARN]: 	at org.bukkit.craftbukkit.util.ServerShutdownThread.run(ServerShutdownThread.java:16)
-[21:11:24] [Server thread/INFO]: Stopping server
-[21:11:24] [Server thread/INFO]: [CordPlanter] Disabling CordPlanter v1.0.0-R.0-SNAPSHOT
-[21:11:24] [Server thread/INFO]: Saving players
-[21:11:24] [Server thread/INFO]: Sheepearrr lost connection: Server closed
-[21:11:24] [Server thread/INFO]: Sheepearrr left the game
-[21:11:24] [Server thread/INFO]: Saving worlds
-[21:11:24] [Server thread/INFO]: Saving chunks for level 'ServerLevel[world]'/minecraft:overworld
-[21:11:24] [Server thread/INFO]: [ChunkHolderManager] Waiting 60s for chunk system to halt for world 'world'
-[21:11:24] [Server thread/INFO]: [ChunkHolderManager] Halted chunk system for world 'world'
-[21:11:24] [Server thread/INFO]: [ChunkHolderManager] Saving all chunkholders for world 'world'
-[21:11:25] [Server thread/INFO]: [ChunkHolderManager] Saved 693 block chunks, 693 entity chunks, 0 poi chunks in world 'world' in 0.60s
-[21:11:25] [Server thread/INFO]: [ChunkHolderManager] Waiting 60s for chunk I/O to halt for world 'world'
-[21:11:25] [Server thread/INFO]: [ChunkHolderManager] Halted I/O scheduler for world 'world'
-[21:11:25] [Server thread/INFO]: Saving chunks for level 'ServerLevel[world_nether]'/minecraft:the_nether
-[21:11:25] [Server thread/INFO]: [ChunkHolderManager] Waiting 60s for chunk system to halt for world 'world_nether'
-[21:11:25] [Server thread/INFO]: [ChunkHolderManager] Halted chunk system for world 'world_nether'
-[21:11:25] [Server thread/INFO]: [ChunkHolderManager] Saving all chunkholders for world 'world_nether'
-[21:11:25] [Server thread/INFO]: [ChunkHolderManager] Saved 49 block chunks, 49 entity chunks, 0 poi chunks in world 'world_nether' in 0.02s
-[21:11:25] [Server thread/INFO]: [ChunkHolderManager] Waiting 60s for chunk I/O to halt for world 'world_nether'
-[21:11:25] [Server thread/INFO]: [ChunkHolderManager] Halted I/O scheduler for world 'world_nether'
-[21:11:25] [Server thread/INFO]: Saving chunks for level 'ServerLevel[world_the_end]'/minecraft:the_end
-[21:11:25] [Server thread/INFO]: [ChunkHolderManager] Waiting 60s for chunk system to halt for world 'world_the_end'
-[21:11:25] [Server thread/INFO]: [ChunkHolderManager] Halted chunk system for world 'world_the_end'
-[21:11:25] [Server thread/INFO]: [ChunkHolderManager] Saving all chunkholders for world 'world_the_end'
-[21:11:25] [Server thread/INFO]: [ChunkHolderManager] Saved 49 block chunks, 49 entity chunks, 0 poi chunks in world 'world_the_end' in 0.01s
-[21:11:25] [Server thread/INFO]: [ChunkHolderManager] Waiting 60s for chunk I/O to halt for world 'world_the_end'
-[21:11:25] [Server thread/INFO]: [ChunkHolderManager] Halted I/O scheduler for world 'world_the_end'
-[21:11:25] [Server thread/INFO]: ThreadedAnvilChunkStorage (world): All chunks are saved
-[21:11:25] [Server thread/INFO]: ThreadedAnvilChunkStorage (DIM-1): All chunks are saved
-[21:11:25] [Server thread/INFO]: ThreadedAnvilChunkStorage (DIM1): All chunks are saved
-[21:11:25] [Server thread/INFO]: ThreadedAnvilChunkStorage: All dimensions are saved
-[21:11:25] [Server thread/INFO]: Waiting for all RegionFile I/O tasks to complete...
-[21:11:25] [Server thread/INFO]: All RegionFile I/O tasks to complete
-[21:11:25] [Server thread/INFO]: [MoonriseCommon] Awaiting termination of worker pool for up to 60s...
-[21:11:25] [Server thread/INFO]: [MoonriseCommon] Awaiting termination of I/O pool for up to 60s...
+[21:44:51] [ServerMain/INFO]: [cordplanter] Registering workspaces.
+[21:44:51] [ServerMain/INFO]: [cordplanter] Registering custom enchantments.
+[21:44:51] [ServerMain/INFO]: [cordplanter] Registering translations.
+[21:44:51] [ServerMain/INFO]: [cordplanter] Adding and reading workspace configs.
+[21:44:53] [ServerMain/INFO]: Environment: Environment[sessionHost=https://sessionserver.mojang.com, servicesHost=https://api.minecraftservices.com, name=PROD]
+[21:44:54] [Worker-Main-3/INFO]: [cordplanter] Register workspace command.
+[21:44:54] [Worker-Main-3/INFO]: [cordplanter] Registering custom commands.
+[21:44:54] [ServerMain/INFO]: Loaded 1407 recipes
+[21:44:54] [ServerMain/INFO]: Loaded 1520 advancements
+[21:44:54] [ServerMain/INFO]: [ca.spottedleaf.dataconverter.minecraft.datatypes.MCTypeRegistry] Initialising converters for DataConverter...
+[21:44:54] [ServerMain/INFO]: [ca.spottedleaf.dataconverter.minecraft.datatypes.MCTypeRegistry] Finished initialising converters for DataConverter in 224.6ms
+[21:44:55] [Server thread/INFO]: Starting minecraft server version 1.21.7
+[21:44:55] [Server thread/INFO]: Loading properties
+[21:44:55] [Server thread/INFO]: This server is running Paper version 1.21.7-28-main@94d60e1 (2025-07-14T21:13:45Z) (Implementing API version 1.21.7-R0.1-SNAPSHOT)
+[21:44:55] [Server thread/INFO]: [spark] This server bundles the spark profiler. For more information please visit https://docs.papermc.io/paper/profiling
+[21:44:55] [Server thread/INFO]: Server Ping Player Sample Count: 12
+[21:44:55] [Server thread/INFO]: Using 4 threads for Netty based IO
+[21:44:55] [Server thread/INFO]: [MoonriseCommon] Paper is using 4 worker threads, 1 I/O threads
+[21:44:55] [Server thread/INFO]: [ChunkTaskScheduler] Chunk system is using population gen parallelism: true
+[21:44:55] [Server thread/INFO]: Default game type: SURVIVAL
+[21:44:55] [Server thread/INFO]: Generating keypair
+[21:44:55] [Server thread/INFO]: Starting Minecraft server on *:10470
+[21:44:55] [Server thread/INFO]: Using epoll channel type
+[21:44:55] [Server thread/INFO]: Paper: Using libdeflate (Linux x86_64) compression from Velocity.
+[21:44:55] [Server thread/INFO]: Paper: Using OpenSSL 3.x.x (Linux x86_64) cipher from Velocity.
+[21:44:55] [Server thread/INFO]: [CordPlanter] Loading server plugin CordPlanter v1.0.0-R.0-SNAPSHOT
+[21:44:55] [Server thread/INFO]: Server permissions file permissions.yml is empty, ignoring it
+[21:44:55] [Server thread/INFO]: Preparing level "world"
+[21:44:55] [Server thread/INFO]: Preparing start region for dimension minecraft:overworld
+[21:44:55] [Server thread/INFO]: Preparing spawn area: 0%
+[21:44:56] [Server thread/INFO]: Preparing spawn area: 38%
+[21:44:56] [Server thread/INFO]: Time elapsed: 644 ms
+[21:44:56] [Server thread/INFO]: Preparing start region for dimension minecraft:the_nether
+[21:44:56] [Server thread/INFO]: Preparing spawn area: 0%
+[21:44:56] [Server thread/INFO]: Time elapsed: 71 ms
+[21:44:56] [Server thread/INFO]: Preparing start region for dimension minecraft:the_end
+[21:44:56] [Server thread/INFO]: Preparing spawn area: 0%
+[21:44:56] [Server thread/INFO]: Time elapsed: 40 ms
+[21:44:56] [Server thread/INFO]: [CordPlanter] Enabling CordPlanter v1.0.0-R.0-SNAPSHOT
+[21:44:56] [Server thread/INFO]: [spark] Starting background profiler...
+[21:44:56] [Server thread/INFO]: Done preparing level "world" (1.281s)
+[21:44:56] [Server thread/INFO]: Running delayed init tasks
+[21:44:56] [Server thread/INFO]: Done (7.645s)! For help, type "help"
