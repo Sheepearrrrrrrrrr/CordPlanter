@@ -1,3 +1,5 @@
+# THIS PROJECT IS CURRENTLY ARCHIVED BUT MAY BR REWRITTEN LATER
+
 ## 🔌 CordPlanter
 CordPlanter makes it easier to add custom functionality like commands or enchantments with a Minecraft plugin. With just a `.json` file, you can add anything like commands with requirements and execution.
 ## Notice
